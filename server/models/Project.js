@@ -12,11 +12,6 @@ const projectSchema = new mongoose.Schema(
             type: String,
             required: true
         },
-        field: {
-            type: String,
-            enum: ['Electrical', 'Mechanical'],
-            default: ''
-        },
         projectType: {
             type: String,
             enum: ['Personal Hse', 'Hostel', 'Hotel', 'Office Block', 'Residential Apartment', 'Industrial', 'FitOut', 'Renovation', 'School', 'Research'],
@@ -41,11 +36,10 @@ const projectSchema = new mongoose.Schema(
             type: Number,
             default: 0
         },
-        employeeAssigned: {
+        employeeAssigned: [{
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-            default: null
-        },
+            ref: 'User'
+        }],
         stage: {
             type: String,
             default: ''

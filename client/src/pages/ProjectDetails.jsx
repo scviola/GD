@@ -141,7 +141,7 @@ const ProjectDetails = () => {
             <header className="page-header">
                 <h2>Project Details</h2>
                 {displayProjectInfo ? (
-                    <p className="project-name">{displayProjectInfo.projectCode || displayProjectInfo.projectNumber} - {displayProjectInfo.name} {displayProjectInfo.field ? `(${displayProjectInfo.field})` : ''}</p>
+                    <p className="project-name">{displayProjectInfo.projectCode || displayProjectInfo.projectNumber} - {displayProjectInfo.name}</p>
                 ) : selectedProject ? (
                     <p className="project-name">Loading project...</p>
                 ) : null}

@@ -10,9 +10,6 @@ const createProjectValidation = [
         .trim()
         .notEmpty().withMessage('Project name is required')
         .isLength({ max: 200 }).withMessage('Project name must be less than 200 characters'),
-    body('field')
-        .optional()
-        .isIn(['Electrical', 'Mechanical']).withMessage('Field must be Electrical or Mechanical'),
     body('projectType')
         .optional()
         .isIn([
@@ -48,6 +45,10 @@ const createProjectValidation = [
         .custom((value) => {
             if (value === '' || value === null || value === undefined) return true;
             const mongoose = require('mongoose');
+            // Handle both single ID and array of IDs
+            if (Array.isArray(value)) {
+                return value.every(id => mongoose.Types.ObjectId.isValid(id));
+            }
             return mongoose.Types.ObjectId.isValid(value);
         }).withMessage('Invalid employee ID'),
     body('stage')
@@ -76,9 +77,6 @@ const updateProjectValidation = [
         .trim()
         .notEmpty().withMessage('Project name cannot be empty')
         .isLength({ max: 200 }).withMessage('Project name must be less than 200 characters'),
-    body('field')
-        .optional()
-        .isIn(['Electrical', 'Mechanical']).withMessage('Field must be Electrical or Mechanical'),
     body('projectType')
         .optional()
         .isIn([
@@ -114,6 +112,10 @@ const updateProjectValidation = [
         .custom((value) => {
             if (value === '' || value === null || value === undefined) return true;
             const mongoose = require('mongoose');
+            // Handle both single ID and array of IDs
+            if (Array.isArray(value)) {
+                return value.every(id => mongoose.Types.ObjectId.isValid(id));
+            }
             return mongoose.Types.ObjectId.isValid(value);
         }).withMessage('Invalid employee ID'),
     body('stage')

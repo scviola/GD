@@ -15,22 +15,16 @@ const UpdateProject = () => {
     const [formData, setFormData] = useState({
         projectNumber: '',
         projectName: '',
-        field: '',
         projectType: '',
         location: '',
         architect: '',
         mainContractor: '',
         engEstimate: '',
         finalAccount: '',
-        employeeAssigned: '',
+        employeeAssigned: [],
         stage: '',
         status: 'In Progress'
     });
-
-    const FIELD_OPTIONS = [
-        'Electrical',
-        'Mechanical'
-    ];
 
     const PROJECT_TYPE_OPTIONS = [
         'Personal Hse',
@@ -61,14 +55,13 @@ const UpdateProject = () => {
                 setFormData({
                     projectNumber: projectRes.data.projectNumber || '',
                     projectName: projectRes.data.projectName || '',
-                    field: projectRes.data.field || '',
                     projectType: projectRes.data.projectType || '',
                     location: projectRes.data.location || '',
                     architect: projectRes.data.architect || '',
                     mainContractor: projectRes.data.mainContractor || '',
                     engEstimate: projectRes.data.engEstimate || '',
                     finalAccount: projectRes.data.finalAccount || '',
-                    employeeAssigned: projectRes.data.employeeAssigned?._id || projectRes.data.employeeAssigned || '',
+                    employeeAssigned: projectRes.data.employeeAssigned || [],
                     stage: projectRes.data.stage || '',
                     status: projectRes.data.status || 'In Progress'
                 });
@@ -160,20 +153,6 @@ const UpdateProject = () => {
                         </div>
                         
                         <div className="form-group">
-                            <label>Field</label>
-                            <select 
-                                name="field"
-                                value={formData.field}
-                                onChange={handleChange}
-                            >
-                                <option value="">Select Field</option>
-                                {FIELD_OPTIONS.map(field => (
-                                    <option key={field} value={field}>{field}</option>
-                                ))}
-                            </select>
-                        </div>
-                        
-                        <div className="form-group">
                             <label>Project Type</label>
                             <select 
                                 name="projectType"
@@ -248,13 +227,18 @@ const UpdateProject = () => {
                         </div>
                         
                         <div className="form-group">
-                            <label>Assign Engineer</label>
+                            <label>Assign Engineers</label>
                             <select 
                                 name="employeeAssigned"
+                                multiple
                                 value={formData.employeeAssigned}
-                                onChange={handleChange}
+                                onChange={(e) => {
+                                    const selected = Array.from(e.target.selectedOptions, option => option.value);
+                                    setFormData({...formData, employeeAssigned: selected});
+                                }}
+                                style={{ height: '120px' }}
                             >
-                                <option value="">Select Engineer</option>
+                                <option value="">Select Engineers</option>
                                 {employees.map(emp => (
                                     <option key={emp._id} value={emp._id}>
                                         {emp.name} ({emp.email})

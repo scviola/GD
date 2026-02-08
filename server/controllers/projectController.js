@@ -15,7 +15,6 @@ const createProject = async (req, res) => {
             const { 
                 projectNumber, 
                 projectName,
-                field,
                 projectType,
                 location, 
                 architect, 
@@ -45,20 +44,30 @@ const createProject = async (req, res) => {
             const engEstimateNum = engEstimate ? Number(engEstimate) : 0;
             const finalAccountNum = finalAccount ? Number(finalAccount) : 0;
             
+            // Handle employeeAssigned as array
+            let employeeAssignedArray = [];
+            if (employeeAssigned) {
+                if (Array.isArray(employeeAssigned)) {
+                    employeeAssignedArray = employeeAssigned;
+                } else if (typeof employeeAssigned === 'string' && employeeAssigned) {
+                    employeeAssignedArray = [employeeAssigned];
+                }
+            }
+            
             console.log('  - engEstimate (converted):', engEstimateNum, typeof engEstimateNum);
             console.log('  - finalAccount (converted):', finalAccountNum, typeof finalAccountNum);
+            console.log('  - employeeAssigned (array):', employeeAssignedArray);
             
             const newProject = await Project.create({ 
                 projectNumber, 
                 projectName, 
-                field,
                 projectType,
                 architect, 
                 location,
                 mainContractor: mainContractor || '',
                 engEstimate: engEstimateNum,
                 finalAccount: finalAccountNum,
-                employeeAssigned: employeeAssigned || null,
+                employeeAssigned: employeeAssignedArray,
                 stage: stage || '',
                 status: status || 'In Progress'
             });
@@ -140,7 +149,7 @@ const updateProject = async (req, res) => {
 
         // Update all fields from request body
         const allowedFields = [
-            'projectNumber', 'projectName', 'field', 'projectType', 'architect', 'location',
+            'projectNumber', 'projectName', 'projectType', 'architect', 'location',
             'mainContractor', 'engEstimate', 'finalAccount',
             'employeeAssigned', 'stage', 'status'
         ];
@@ -169,8 +178,10 @@ const updateMyProject = async (req, res) => {
 
         // Check if user is assigned to this project
         const userId = req.user?._id || req.user?.id;
-        const isAssigned = project.employeeAssigned?.toString() === userId?.toString() || 
-                          project.employeeAssigned === userId;
+        const isAssigned = Array.isArray(project.employeeAssigned) 
+            ? project.employeeAssigned.some(id => id?.toString() === userId?.toString())
+            : project.employeeAssigned?.toString() === userId?.toString() || 
+              project.employeeAssigned === userId;
         
         if (!isAssigned && req.user?.role !== 'admin') {
             return res.status(403).json({ message: 'You are not assigned to this project' });

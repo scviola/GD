@@ -13,22 +13,16 @@ const ProjectManager = () => {
     const [formData, setFormData] = useState({
         projectNumber: '',
         projectName: '',
-        field: '',
         projectType: '',
         location: '',
         architect: '',
         mainContractor: '',
         engEstimate: '',
         finalAccount: '',
-        employeeAssigned: '',
+        employeeAssigned: [],
         stage: '',
         status: 'In Progress'
     });
-
-    const FIELD_OPTIONS = [
-        'Electrical',
-        'Mechanical'
-    ];
 
     const PROJECT_TYPE_OPTIONS = [
         'Personal Hse',
@@ -82,14 +76,13 @@ const ProjectManager = () => {
             setFormData({
                 projectNumber: '',
                 projectName: '',
-                field: '',
                 projectType: '',
                 location: '',
                 architect: '',
                 mainContractor: '',
                 engEstimate: '',
                 finalAccount: '',
-                employeeAssigned: '',
+                employeeAssigned: [],
                 stage: '',
                 status: 'In Progress'
             });
@@ -121,10 +114,22 @@ const ProjectManager = () => {
         }
     };
 
-    const getEmployeeName = (emp) => {
-        if (!emp) return '-';
-        if (typeof emp === 'object') return emp.name;
-        const found = employees.find(e => e._id === emp);
+    const getEmployeeNames = (empAssignment) => {
+        if (!empAssignment || (Array.isArray(empAssignment) && empAssignment.length === 0)) return '-';
+        
+        // Handle array of IDs
+        if (Array.isArray(empAssignment)) {
+            const names = empAssignment.map(empId => {
+                if (typeof empId === 'object') return empId.name;
+                const found = employees.find(e => e._id === empId);
+                return found ? found.name : 'Unknown';
+            });
+            return names.join(', ');
+        }
+        
+        // Handle single assignment (for backwards compatibility)
+        if (typeof empAssignment === 'object') return empAssignment.name;
+        const found = employees.find(e => e._id === empAssignment);
         return found ? found.name : '-';
     };
 
@@ -183,15 +188,6 @@ const ProjectManager = () => {
                         onChange={(e) => setFormData({...formData, projectName: e.target.value})}
                     />
                     <select 
-                        value={formData.field}
-                        onChange={(e) => setFormData({...formData, field: e.target.value})}
-                    >
-                        <option value="">Field</option>
-                        {FIELD_OPTIONS.map(field => (
-                            <option key={field} value={field}>{field}</option>
-                        ))}
-                    </select>
-                    <select 
                         value={formData.projectType}
                         onChange={(e) => setFormData({...formData, projectType: e.target.value})}
                     >
@@ -209,7 +205,6 @@ const ProjectManager = () => {
                     />
                     <input 
                         placeholder="Architect" 
-                        required 
                         value={formData.architect}
                         onChange={(e) => setFormData({...formData, architect: e.target.value})}
                     />
@@ -231,10 +226,15 @@ const ProjectManager = () => {
                         onChange={(e) => setFormData({...formData, finalAccount: e.target.value})}
                     />
                     <select 
+                        multiple
                         value={formData.employeeAssigned}
-                        onChange={(e) => setFormData({...formData, employeeAssigned: e.target.value})}
+                        onChange={(e) => {
+                            const selected = Array.from(e.target.selectedOptions, option => option.value);
+                            setFormData({...formData, employeeAssigned: selected});
+                        }}
+                        style={{ height: '120px' }}
                     >
-                        <option value="">Assign Engineer</option>
+                        <option value="">Assign Engineers</option>
                         {employees.map(emp => (
                             <option key={emp._id} value={emp._id}>{emp.name}</option>
                         ))}
@@ -298,14 +298,13 @@ const ProjectManager = () => {
                                 <tr>
                                     <th>Project #</th>
                                     <th>Project Name</th>
-                                    <th>Field</th>
                                     <th>Project Type</th>
                                     <th>Location</th>
                                     <th>Architect</th>
                                     <th>Main Contractor</th>
                                     <th>ENG Estimate</th>
                                     <th>Final Account</th>
-                                    <th>Engineer</th>
+                                    <th>Engineers</th>
                                     <th>Stage</th>
                                     <th>Status</th>
                                     <th>Actions</th>
@@ -316,14 +315,13 @@ const ProjectManager = () => {
                                     <tr key={project._id}>
                                         <td><strong><Link to={`/project-details/${project._id}`} className="project-link">{project.projectNumber}</Link></strong></td>
                                         <td><Link to={`/project-details/${project._id}`} className="project-link">{project.projectName}</Link></td>
-                                        <td>{project.field || '-'}</td>
                                         <td>{project.projectType || '-'}</td>
                                         <td>{project.location || '-'}</td>
                                         <td>{project.architect}</td>
                                         <td>{project.mainContractor || '-'}</td>
                                         <td>{formatCurrency(project.engEstimate)}</td>
                                         <td>{formatCurrency(project.finalAccount)}</td>
-                                        <td>{getEmployeeName(project.employeeAssigned)}</td>
+                                        <td>{getEmployeeNames(project.employeeAssigned)}</td>
                                         <td>{project.stage || '-'}</td>
                                         <td>
                                             <select 
