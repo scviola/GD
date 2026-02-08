@@ -159,16 +159,6 @@ const AdminDashboard = () => {
     const completedProjects = filteredProjects.filter(p => p.status === 'Completed').length;
     const activeProjects = filteredProjects.filter(p => p.status === 'Active' || p.status === 'In Progress').length;
     
-    // Overdue projects: projects past their end date that are not completed
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const overdueProjects = filteredProjects.filter(p => {
-      if (p.status === 'Completed') return false;
-      if (!p.endDate) return false;
-      const endDate = new Date(p.endDate);
-      return endDate < today;
-    }).length;
-
     // Pending tasks: tasks from masterSchedule that are not completed
     const pendingTasks = masterSchedule.filter(t => t.status !== 'Completed').length;
 
@@ -190,7 +180,6 @@ const AdminDashboard = () => {
       totalProjects,
       completedProjects,
       activeProjects,
-      overdueProjects,
       pendingTasks,
       totalEmployees: employees.length,
       projectsByStage,
@@ -468,13 +457,6 @@ const AdminDashboard = () => {
             <span className="stat-text">Completed</span>
           </div>
         </Link>
-        <Link to="/project-manager?status=overdue" className="stat-tile link-tile">
-          <div className="stat-icon red">⚠️</div>
-          <div className="stat-data">
-            <span className="stat-number">{summaries.overdueProjects}</span>
-            <span className="stat-text">Overdue Projects</span>
-          </div>
-        </Link>
       </div>
 
       {/* Filters */}
@@ -495,7 +477,7 @@ const AdminDashboard = () => {
           value={filters.engineerId}
           onChange={e => handleFilterChange('engineerId', e.target.value)}
         >
-          <option value="">All Employees</option>
+          <option value="">All Staff</option>
           {employees.map(emp => (
             <option key={emp._id} value={emp._id}>
               {emp.name}
@@ -547,7 +529,7 @@ const AdminDashboard = () => {
       <div className="analytics-grid">
         {/* Projects Created Over Time */}
         <div className="chart-card">
-          <h4>Projects Created Over Time</h4>
+          <h4>Projects Added Over Time</h4>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={projectsOverTime}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -623,7 +605,7 @@ const AdminDashboard = () => {
         {/* Employee Workload Distribution */}
         {employeeWorkload.length > 0 && (
           <div className="chart-card">
-            <h4>Employee Workload Distribution</h4>
+            <h4>Staff Workload Distribution</h4>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={employeeWorkload} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" />
@@ -657,12 +639,12 @@ const AdminDashboard = () => {
 
       {/* Employee Workload Table */}
       <div className="analytics-card">
-        <h3>Employee Workload Overview</h3>
+        <h3>Staff Workload Overview</h3>
         <div className="table-responsive">
         <table className="spreadsheet-table">
           <thead>
             <tr>
-              <th>Employee Name</th>
+              <th>Staff Name</th>
               <th>Active Projects</th>
               <th>Open Tasks</th>
               <th>Overdue Tasks</th>
