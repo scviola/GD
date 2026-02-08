@@ -45,14 +45,24 @@ const TaskLog = () => {
           const assigned = projects.filter(p => {
             const empAssigned = p.employeeAssigned;
             if (!empAssigned) return false;
-            
-            if (typeof empAssigned === 'object') {
-              return empAssigned._id === userId;
+
+        // Handle array of assigned engineers
+        if (Array.isArray(empAssigned)) {
+          return empAssigned.some(assignedId => {
+            if (typeof assignedId === 'object') {
+              return assignedId._id === userId;
             }
-            return empAssigned === userId;
+            return assignedId === userId;
           });
-          setMyProjects(assigned);
         }
+        // Handle single assignment
+        if (typeof empAssigned === 'object') {
+          return empAssigned._id === userId;
+        }
+        return empAssigned === userId;
+        });
+        setMyProjects(assigned);
+      }
       } catch (err) {
         console.error('Failed to load projects', err);
       }
