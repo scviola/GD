@@ -2,6 +2,10 @@ const Project = require('../models/Project');
 
 // POST /api/projects
 const createProject = async (req, res) => {
+    console.log('=== CREATE PROJECT DEBUG ===');
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    console.log('Content-Type:', req.get('Content-Type'));
+    
     try {
         // Handle both single project and bulk creation
         const projectsData = Array.isArray(req.body) ? req.body : [req.body];
@@ -23,9 +27,26 @@ const createProject = async (req, res) => {
                 status 
             } = data;
             
+            console.log('Processing project:', projectNumber);
+            console.log('  - projectNumber:', projectNumber, typeof projectNumber);
+            console.log('  - projectName:', projectName, typeof projectName);
+            console.log('  - location:', location, typeof location);
+            console.log('  - architect:', architect, typeof architect);
+            console.log('  - engEstimate:', engEstimate, typeof engEstimate);
+            console.log('  - finalAccount:', finalAccount, typeof finalAccount);
+            console.log('  - employeeAssigned:', employeeAssigned, typeof employeeAssigned);
+            
             if (!projectNumber || !projectName) {
+                console.log('VALIDATION FAILED: Missing required fields');
                 return res.status(400).json({message: "Missing required fields"});
             }
+            
+            // Type conversion for numeric fields
+            const engEstimateNum = engEstimate ? Number(engEstimate) : 0;
+            const finalAccountNum = finalAccount ? Number(finalAccount) : 0;
+            
+            console.log('  - engEstimate (converted):', engEstimateNum, typeof engEstimateNum);
+            console.log('  - finalAccount (converted):', finalAccountNum, typeof finalAccountNum);
             
             const newProject = await Project.create({ 
                 projectNumber, 
@@ -35,8 +56,8 @@ const createProject = async (req, res) => {
                 architect, 
                 location,
                 mainContractor: mainContractor || '',
-                engEstimate: engEstimate,
-                finalAccount: finalAccount,
+                engEstimate: engEstimateNum,
+                finalAccount: finalAccountNum,
                 employeeAssigned: employeeAssigned || null,
                 stage: stage || '',
                 status: status || 'In Progress'
@@ -50,8 +71,32 @@ const createProject = async (req, res) => {
         });
 
     } catch (err) {
+        console.log('=== MONGODB ERROR ===');
+        console.log('Error name:', err.name);
+        console.log('Error code:', err.code);
+        console.log('Error message:', err.message);
+        console.log('Full error:', err);
+        
+        if (err.name === 'ValidationError') {
+            console.log('Validation errors:', err.errors);
+            const validationErrors = Object.keys(err.errors).map(key => ({
+                field: key,
+                message: err.errors[key].message
+            }));
+            return res.status(400).json({ 
+                message: 'Validation error creating project',
+                errors: validationErrors
+            });
+        }
+        if (err.code === 11000) {
+            console.log('DUPLICATE KEY ERROR - projectNumber already exists');
+            return res.status(400).json({ 
+                message: 'Error: Project number already exists. Please use a different project number.'
+            });
+        }
+        
         res.status(400).json({ 
-            message: 'Error creating project. Check for duplicate Project Number.',
+            message: 'Error creating project: ' + err.message,
             error: err.message
         });
     }

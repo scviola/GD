@@ -24,11 +24,9 @@ const projectSchema = new mongoose.Schema(
         },
         location: {
             type: String,
-            required: true
         },
         architect: {
             type: String,
-            required: true
         },
 
         mainContractor: {

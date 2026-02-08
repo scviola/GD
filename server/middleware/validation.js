@@ -32,14 +32,24 @@ const createProjectValidation = [
         .optional()
         .isLength({ max: 200 }).withMessage('Main contractor must be less than 200 characters'),
     body('engEstimate')
-        .optional()
-        .isNumeric().withMessage('Engineering estimate must be a number'),
+        .optional({ nullable: true, checkFalsy: true })
+        .custom((value) => {
+            if (value === '' || value === null || value === undefined) return true;
+            return !isNaN(value) && !isNaN(parseFloat(value));
+        }).withMessage('Engineering estimate must be a number'),
     body('finalAccount')
-        .optional()
-        .isNumeric().withMessage('Final account must be a number'),
+        .optional({ nullable: true, checkFalsy: true })
+        .custom((value) => {
+            if (value === '' || value === null || value === undefined) return true;
+            return !isNaN(value) && !isNaN(parseFloat(value));
+        }).withMessage('Final account must be a number'),
     body('employeeAssigned')
-        .optional()
-        .isMongoId().withMessage('Invalid employee ID'),
+        .optional({ nullable: true, checkFalsy: true })
+        .custom((value) => {
+            if (value === '' || value === null || value === undefined) return true;
+            const mongoose = require('mongoose');
+            return mongoose.Types.ObjectId.isValid(value);
+        }).withMessage('Invalid employee ID'),
     body('stage')
         .optional()
         .isIn([
@@ -88,14 +98,24 @@ const updateProjectValidation = [
         .trim()
         .isLength({ max: 200 }).withMessage('Main contractor must be less than 200 characters'),
     body('engEstimate')
-        .optional()
-        .isNumeric().withMessage('Engineering estimate must be a number'),
+        .optional({ nullable: true, checkFalsy: true })
+        .custom((value) => {
+            if (value === '' || value === null || value === undefined) return true;
+            return !isNaN(value) && !isNaN(parseFloat(value));
+        }).withMessage('Engineering estimate must be a number'),
     body('finalAccount')
-        .optional()
-        .isNumeric().withMessage('Final account must be a number'),
+        .optional({ nullable: true, checkFalsy: true })
+        .custom((value) => {
+            if (value === '' || value === null || value === undefined) return true;
+            return !isNaN(value) && !isNaN(parseFloat(value));
+        }).withMessage('Final account must be a number'),
     body('employeeAssigned')
-        .optional()
-        .isMongoId().withMessage('Invalid employee ID'),
+        .optional({ nullable: true, checkFalsy: true })
+        .custom((value) => {
+            if (value === '' || value === null || value === undefined) return true;
+            const mongoose = require('mongoose');
+            return mongoose.Types.ObjectId.isValid(value);
+        }).withMessage('Invalid employee ID'),
     body('stage')
         .optional()
         .isIn([
