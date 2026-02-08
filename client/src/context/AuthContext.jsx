@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
-        navigate('/home');
+        // Navigation is handled by the calling component
     };
 
     const logout = () => {

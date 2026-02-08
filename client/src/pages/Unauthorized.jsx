@@ -1,9 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldAlert } from 'lucide-react'; // Optional: for a professional icon
+import { ShieldAlert } from 'lucide-react';
 
-const Unauthorized = () => {
+const Unauthorized = ({ message }) => {
     const navigate = useNavigate();
+    const defaultMessage = "You do not have the required administrative permissions to view this page. All access attempts are logged for security purposes.";
 
     return (
         <div className="auth-wrapper">
@@ -13,8 +14,7 @@ const Unauthorized = () => {
                 </div>
                 <h2 style={{ color: 'var(--primary)' }}>Access Denied</h2>
                 <p style={{ margin: '1rem 0', color: '#666' }}>
-                You do not have the required administrative permissions to view this page. 
-                All access attempts are logged for security purposes.
+                    {message || defaultMessage}
                 </p>
                 
                 <div style={{ display: 'flex', gap: '10px', marginTop: '1.5rem' }}>
@@ -26,11 +26,11 @@ const Unauthorized = () => {
                         Go Back
                     </button>
                     <button 
-                        onClick={() => navigate('/employee')} 
+                        onClick={() => navigate('/login')} 
                         className="btn-primary"
                         style={{ flex: 1 }}
                     >
-                        Return to Portal
+                        Return to Login
                     </button>
                 </div>
             </div>

@@ -291,9 +291,11 @@ const EmployeeSummaries = () => {
                     <p className="header-date">{todayDate}</p>
                 </div>
                 <div className="header-right">
-                    <button onClick={handleLogout} className="btn-logout-header">
-                        <LogOut size={18} /> Logout
-                    </button>
+                    {user?.role !== 'admin' && (
+                        <button onClick={handleLogout} className="btn-logout-header">
+                            <LogOut size={18} /> Logout
+                        </button>
+                    )}
                 </div>
             </header>
 
@@ -348,9 +350,10 @@ const EmployeeSummaries = () => {
                             <tr>
                                 <th>Project Number</th>
                                 <th>Project Name</th>
+                                <th>Project Type</th>
                                 <th>Location</th>
                                 <th>Architect</th>
-                                <th>Contractor</th>
+                                <th>Main Contractor</th>
                                 <th>Stage</th>
                                 <th>Status</th>
                                 <th>Actions</th>
@@ -361,9 +364,10 @@ const EmployeeSummaries = () => {
                                 <tr key={project._id}>
                                     <td><strong>{project.projectNumber}</strong></td>
                                     <td>{project.projectName}</td>
+                                    <td>{project.projectType || '-'}</td>
                                     <td>{project.location || '-'}</td>
                                     <td>{project.architect || '-'}</td>
-                                    <td>{project.contractor || '-'}</td>
+                                    <td>{project.mainContractor || '-'}</td>
                                     <td>{project.stage || '-'}</td>
                                     <td>
                                         <span className={`badge ${project.status?.toLowerCase().replace(/\s+/g, '-') || 'not-set'}`}>

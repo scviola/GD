@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
 import {
   fetchProjects,
   fetchEmployees
@@ -126,6 +126,26 @@ const AdminDashboard = () => {
     return projects.filter(p => {
       if (filters.stage && p.stage !== filters.stage) return false;
       if (filters.status && p.status !== filters.status) return false;
+      
+      // Date filtering
+      if (filters.startDate) {
+        const startDate = new Date(filters.startDate);
+        startDate.setHours(0, 0, 0, 0);
+        if (p.createdAt) {
+          const createdDate = new Date(p.createdAt);
+          if (createdDate < startDate) return false;
+        }
+      }
+      
+      if (filters.endDate) {
+        const endDate = new Date(filters.endDate);
+        endDate.setHours(23, 59, 59, 999);
+        if (p.createdAt) {
+          const createdDate = new Date(p.createdAt);
+          if (createdDate > endDate) return false;
+        }
+      }
+      
       return true;
     });
   };
@@ -186,33 +206,47 @@ const AdminDashboard = () => {
     const monthlyData = {};
     filteredProjects.forEach(project => {
       if (project.createdAt) {
-        const month = new Date(project.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-        monthlyData[month] = (monthlyData[month] || 0) + 1;
+        const date = new Date(project.createdAt);
+        const monthIndex = date.getMonth();
+        monthlyData[monthIndex] = (monthlyData[monthIndex] || 0) + 1;
       }
     });
-    // Sort by date
-    const sortedMonths = Object.keys(monthlyData).sort((a, b) => {
-      const dateA = new Date(a);
-      const dateB = new Date(b);
-      return dateA - dateB;
-    });
-    return sortedMonths.map(month => ({ month, projects: monthlyData[month] }));
+    
+    // Generate all 12 months (Jan - Dec)
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    return monthNames.map((monthName, index) => ({
+      month: monthName,
+      projects: monthlyData[index] || 0
+    }));
   };
 
-  // Tasks completion trend (tasks created vs completed per week)
+  // Tasks completion trend (stacked bar: pending vs completed per week)
   const getTasksCompletionTrend = () => {
     const weeklyData = {};
     masterSchedule.forEach(task => {
-      const week = new Date(task.workDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      if (!weeklyData[week]) {
-        weeklyData[week] = { week, created: 0, completed: 0 };
+      // Get the week start date (Sunday)
+      const workDate = new Date(task.workDate);
+      const weekStart = new Date(workDate);
+      weekStart.setDate(workDate.getDate() - workDate.getDay());
+      const weekLabel = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      
+      if (!weeklyData[weekLabel]) {
+        weeklyData[weekLabel] = { week: weekLabel, pending: 0, completed: 0 };
       }
-      weeklyData[week].created += 1;
       if (task.status === 'Completed') {
-        weeklyData[week].completed += 1;
+        weeklyData[weekLabel].completed += 1;
+      } else {
+        weeklyData[weekLabel].pending += 1;
       }
     });
-    return Object.values(weeklyData);
+    
+    // Sort by week
+    return Object.values(weeklyData).sort((a, b) => {
+      const dateA = new Date(a.week);
+      const dateB = new Date(b.week);
+      return dateA - dateB;
+    });
   };
 
   // Employee workload distribution
@@ -249,11 +283,78 @@ const AdminDashboard = () => {
 
   // Transport trend over time (Road vs Flight)
   const getTransportTrendOverTime = () => {
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    // Apply date filtering to master schedule tasks
+    let filteredTasks = masterSchedule;
+    
+    // Filter by date range if selected
+    if (filters.startDate) {
+      const startDate = new Date(filters.startDate);
+      startDate.setHours(0, 0, 0, 0);
+      filteredTasks = filteredTasks.filter(task => {
+        if (!task.workDate) return false;
+        const taskDate = new Date(task.workDate);
+        return taskDate >= startDate;
+      });
+    }
+    
+    if (filters.endDate) {
+      const endDate = new Date(filters.endDate);
+      endDate.setHours(23, 59, 59, 999);
+      filteredTasks = filteredTasks.filter(task => {
+        if (!task.workDate) return false;
+        const taskDate = new Date(task.workDate);
+        return taskDate <= endDate;
+      });
+    }
+    
     // If backend provides pre-aggregated data, use it
     if (analytics.transportTrendByMonth && analytics.transportTrendByMonth.length > 0) {
-      return analytics.transportTrendByMonth;
+      // Create a map of existing data by month index
+      const transportMap = {};
+      analytics.transportTrendByMonth.forEach(item => {
+        // Try to extract month index from month name
+        const monthIndex = monthNames.findIndex(m => item.month && item.month.startsWith(m));
+        if (monthIndex >= 0) {
+          transportMap[monthIndex] = { Road: item.Road || 0, Flight: item.Flight || 0 };
+        }
+      });
+      
+      // Generate all 12 months
+      return monthNames.map((monthName, index) => ({
+        month: monthName,
+        Road: transportMap[index]?.Road || 0,
+        Flight: transportMap[index]?.Flight || 0
+      }));
     }
-    return null;
+    
+    // Calculate transport trend from filtered tasks
+    const transportData = {};
+    filteredTasks.forEach(task => {
+      if (task.transport && task.workDate) {
+        const date = new Date(task.workDate);
+        const monthIndex = date.getMonth();
+        const transportType = task.transport;
+        
+        if (!transportData[monthIndex]) {
+          transportData[monthIndex] = { Road: 0, Flight: 0 };
+        }
+        
+        if (transportType === 'Road' || transportType === 'road') {
+          transportData[monthIndex].Road += 1;
+        } else if (transportType === 'Flight' || transportType === 'flight') {
+          transportData[monthIndex].Flight += 1;
+        }
+      }
+    });
+    
+    // Generate all 12 months
+    return monthNames.map((monthName, index) => ({
+      month: monthName,
+      Road: transportData[index]?.Road || 0,
+      Flight: transportData[index]?.Flight || 0
+    }));
   };
 
   // Employee workload table data
@@ -328,7 +429,6 @@ const AdminDashboard = () => {
       {/* Header */}
       <header className="dashboard-header">
         <div className="header-left">
-          <Link to="/" className="btn-home-link">← Home</Link>
         </div>
         <div className="header-right">
           <span className="user-greeting">{getGreeting()}, {user?.name?.split(' ')[0]}</span>
@@ -337,6 +437,13 @@ const AdminDashboard = () => {
       </header>
 
       <h2>Admin Dashboard</h2>
+
+      {/* Quick Action Links */}
+      <div className="quick-links">
+        <Link to="/task-log" className="quick-link-btn">
+          Access Task Form
+        </Link>
+      </div>
 
       {/* KPI Summary Cards */}
       <div className="stats-row">
@@ -366,20 +473,6 @@ const AdminDashboard = () => {
           <div className="stat-data">
             <span className="stat-number">{summaries.overdueProjects}</span>
             <span className="stat-text">Overdue Projects</span>
-          </div>
-        </Link>
-        <div className="stat-tile">
-          <div className="stat-icon purple">📋</div>
-          <div className="stat-data">
-            <span className="stat-number">{summaries.pendingTasks}</span>
-            <span className="stat-text">Tasks Pending</span>
-          </div>
-        </div>
-        <Link to="/employees" className="stat-tile link-tile">
-          <div className="stat-icon blue">👥</div>
-          <div className="stat-data">
-            <span className="stat-number">{summaries.totalEmployees}</span>
-            <span className="stat-text">Total Employees</span>
           </div>
         </Link>
       </div>
@@ -453,20 +546,18 @@ const AdminDashboard = () => {
       {/* Analytics Section */}
       <div className="analytics-grid">
         {/* Projects Created Over Time */}
-        {projectsOverTime.length > 0 && (
-          <div className="chart-card">
-            <h4>Projects Created Over Time</h4>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={projectsOverTime}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" label={{ value: 'Month', position: 'insideBottom', offset: -5 }} />
-                <YAxis label={{ value: 'Projects', angle: -90, position: 'insideLeft' }} />
-                <Tooltip />
-                <Line type="monotone" dataKey="projects" stroke="#3b82f6" strokeWidth={2} name="Projects" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        )}
+        <div className="chart-card">
+          <h4>Projects Created Over Time</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={projectsOverTime}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" label={{ value: '2026', position: 'insideBottom', offset: -5 }} />
+              <YAxis label={{ value: 'Projects', angle: -90, position: 'insideLeft' }} />
+              <Tooltip />
+              <Line type="monotone" dataKey="projects" stroke="#3b82f6" strokeWidth={2} name="Projects" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
 
         {/* Projects by Stage */}
         <div className="chart-card">
@@ -474,7 +565,12 @@ const AdminDashboard = () => {
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={Object.entries(summaries.projectsByStage).map(([name, value]) => ({ name, value }))}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" label={{ value: 'Stage', position: 'insideBottom', offset: -5 }} />
+              <XAxis 
+                dataKey="name"                 
+                tick={{ angle: -8, textAnchor: 'end', fontSize: 12 }}
+                interval={0}
+                axisLine={{ offset: 20 }}
+              />
               <YAxis label={{ value: 'Projects', angle: -90, position: 'insideLeft' }} />
               <Tooltip />
               <Bar dataKey="value" fill="#3b82f6" name="Projects" />
@@ -506,18 +602,19 @@ const AdminDashboard = () => {
           </ResponsiveContainer>
         </div>
 
-        {/* Tasks Completion Trend */}
+        {/* Tasks Completion Trend (Stacked Bar) */}
         {tasksCompletionTrend.length > 0 && (
           <div className="chart-card">
-            <h4>Tasks Completion Trend</h4>
+            <h4>Tasks Completion Trend (Weekly)</h4>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={tasksCompletionTrend}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="week" label={{ value: 'Week', position: 'insideBottom', offset: -5 }} />
+                <XAxis dataKey="week" label={{ value: 'Week Starting', position: 'insideBottom', offset: -5 }} />
                 <YAxis label={{ value: 'Tasks', angle: -90, position: 'insideLeft' }} />
                 <Tooltip />
-                <Bar dataKey="created" fill="#3b82f6" name="Tasks Created" />
-                <Bar dataKey="completed" fill="#10b981" name="Tasks Completed" />
+                <Legend wrapperStyle={{ paddingTop: '20px' }} iconSpacing={15} />
+                <Bar dataKey="completed" stackId="a" fill="#10b981" name="Completed" />
+                <Bar dataKey="pending" stackId="a" fill="#f59e0b" name="Pending" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -542,31 +639,26 @@ const AdminDashboard = () => {
         )}
 
         {/* Transport Usage Over Time */}
-        {(() => {
-          const transportTrend = getTransportTrendOverTime();
-          if (!transportTrend || transportTrend.length === 0) return null;
-          return (
-            <div className="chart-card">
-              <h4>Transport Usage Over Time</h4>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={transportTrend}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" label={{ value: 'Month', position: 'insideBottom', offset: -5 }} />
-                  <YAxis label={{ value: 'Trips', angle: -90, position: 'insideLeft' }} />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="Road" stroke="#3b82f6" strokeWidth={2} name="Road" />
-                  <Line type="monotone" dataKey="Flight" stroke="#f59e0b" strokeWidth={2} name="Flight" />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          );
-        })()}
-
+        <div className="chart-card">
+          <h4>Transport Usage Over Time</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={getTransportTrendOverTime()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" label={{ value: '2026', position: 'insideBottom', offset: -5 }} />
+                <YAxis label={{ value: 'Trips', angle: -90, position: 'insideLeft' }} />
+                <Tooltip />
+                <Legend wrapperStyle={{ paddingTop: '20px' }} iconSpacing={15} />
+                <Line type="monotone" dataKey="Road" stroke="#3b82f6" strokeWidth={2} name="Road" />            
+                <Line type="monotone" dataKey="Flight" stroke="#f59e0b" strokeWidth={2} name="Flight" />         
+            </LineChart>        
+          </ResponsiveContainer>
+        </div>
       </div>
 
       {/* Employee Workload Table */}
       <div className="analytics-card">
         <h3>Employee Workload Overview</h3>
+        <div className="table-responsive">
         <table className="spreadsheet-table">
           <thead>
             <tr>
@@ -589,10 +681,13 @@ const AdminDashboard = () => {
             ))}
           </tbody>
         </table>
-      </div>
+        </div>
+        </div>
 
       {/* Master Schedule Table */}
-      <h3>Master Schedule</h3>
+      <div className="analytics-card">
+        <h3>Master Schedule</h3>
+        <div className="table-responsive">
       <table className="spreadsheet-table">
         <thead>
           <tr>
@@ -643,8 +738,10 @@ const AdminDashboard = () => {
           ))}
         </tbody>
       </table>
-    </div>
-  );
-};
+      </div>
+      </div>
+      </div>
+    );
+  }
 
 export default AdminDashboard;

@@ -15,15 +15,35 @@ const UpdateProject = () => {
     const [formData, setFormData] = useState({
         projectNumber: '',
         projectName: '',
+        field: '',
+        projectType: '',
         location: '',
         architect: '',
-        contractor: '',
-        projectCostEstimate: '',
-        actualProjectCost: '',
+        mainContractor: '',
+        engEstimate: '',
+        finalAccount: '',
         employeeAssigned: '',
         stage: '',
         status: 'In Progress'
     });
+
+    const FIELD_OPTIONS = [
+        'Electrical',
+        'Mechanical'
+    ];
+
+    const PROJECT_TYPE_OPTIONS = [
+        'Personal Hse',
+        'Hostel',
+        'Hotel',
+        'Office Block',
+        'Residential Apartment',
+        'Industrial',
+        'FitOut',
+        'Renovation',
+        'School',
+        'Research'
+    ];
 
     // Fetch project and employees
     useEffect(() => {
@@ -41,11 +61,13 @@ const UpdateProject = () => {
                 setFormData({
                     projectNumber: projectRes.data.projectNumber || '',
                     projectName: projectRes.data.projectName || '',
+                    field: projectRes.data.field || '',
+                    projectType: projectRes.data.projectType || '',
                     location: projectRes.data.location || '',
                     architect: projectRes.data.architect || '',
-                    contractor: projectRes.data.contractor || '',
-                    projectCostEstimate: projectRes.data.projectCostEstimate || '',
-                    actualProjectCost: projectRes.data.actualProjectCost || '',
+                    mainContractor: projectRes.data.mainContractor || '',
+                    engEstimate: projectRes.data.engEstimate || '',
+                    finalAccount: projectRes.data.finalAccount || '',
                     employeeAssigned: projectRes.data.employeeAssigned?._id || projectRes.data.employeeAssigned || '',
                     stage: projectRes.data.stage || '',
                     status: projectRes.data.status || 'In Progress'
@@ -136,9 +158,35 @@ const UpdateProject = () => {
                                 placeholder="Enter project name"
                             />
                         </div>
-                    </div>
-
-                    <div className="form-row">
+                        
+                        <div className="form-group">
+                            <label>Field</label>
+                            <select 
+                                name="field"
+                                value={formData.field}
+                                onChange={handleChange}
+                            >
+                                <option value="">Select Field</option>
+                                {FIELD_OPTIONS.map(field => (
+                                    <option key={field} value={field}>{field}</option>
+                                ))}
+                            </select>
+                        </div>
+                        
+                        <div className="form-group">
+                            <label>Project Type</label>
+                            <select 
+                                name="projectType"
+                                value={formData.projectType}
+                                onChange={handleChange}
+                            >
+                                <option value="">Select Project Type</option>
+                                {PROJECT_TYPE_OPTIONS.map(type => (
+                                    <option key={type} value={type}>{type}</option>
+                                ))}
+                            </select>
+                        </div>
+                        
                         <div className="form-group">
                             <label>Location</label>
                             <input 
@@ -165,22 +213,22 @@ const UpdateProject = () => {
 
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Contractor</label>
+                            <label>Main Contractor</label>
                             <input 
                                 type="text" 
-                                name="contractor"
-                                value={formData.contractor}
+                                name="mainContractor"
+                                value={formData.mainContractor}
                                 onChange={handleChange}
                                 placeholder="Enter contractor name"
                             />
                         </div>
                         
                         <div className="form-group">
-                            <label>Project Cost Estimate (Ksh)</label>
+                            <label>ENG Estimate (Ksh)</label>
                             <input 
                                 type="number" 
-                                name="projectCostEstimate"
-                                value={formData.projectCostEstimate}
+                                name="engEstimate"
+                                value={formData.engEstimate}
                                 onChange={handleChange}
                                 placeholder="0.00"
                             />
@@ -189,11 +237,11 @@ const UpdateProject = () => {
 
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Actual Project Cost (Ksh)</label>
+                            <label>Final Account (Ksh)</label>
                             <input 
                                 type="number" 
-                                name="actualProjectCost"
-                                value={formData.actualProjectCost}
+                                name="finalAccount"
+                                value={formData.finalAccount}
                                 onChange={handleChange}
                                 placeholder="0.00"
                             />

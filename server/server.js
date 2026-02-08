@@ -14,6 +14,8 @@ const taskRoutes = require('./routes/taskRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const userRoutes = require('./routes/userRoutes');
 const metaRoutes = require('./routes/metaRoutes');
+const noteRoutes = require('./routes/noteRoutes');
+const projectDetailRoutes = require('./routes/projectDetailRoutes');
 
 const globalErrorHandler = require('./middleware/errorMiddleware');
 
@@ -41,6 +43,8 @@ app.use("/api", taskRoutes);
 app.use("/api", adminRoutes);
 app.use("/api", userRoutes);
 app.use('/api', metaRoutes);
+app.use('/api/notes', noteRoutes);
+app.use('/api/project-details', projectDetailRoutes);
 
 
 //health-check

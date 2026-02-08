@@ -9,8 +9,7 @@ const Footer = () => {
             <div className="footer-container">
                 <div className="footer-left">
                     <div className="footer-brand">
-                        <h4>GDEA M&E Engineering Portal</h4>
-                        <p>&copy; {currentYear} Internal System. All Rights Reserved.</p>
+                        <p>&copy; {currentYear} Gamma Delta Eastern Africa Ltd. All Rights Reserved.</p>
                     </div>
                 </div>
                 
@@ -18,7 +17,7 @@ const Footer = () => {
                     <div className="footer-links">
                         <div className="footer-link-item">
                             <ShieldCheck size={16} />
-                            <span>Confidential | Internal Use Only</span>
+                            <span>Internal Use Only</span>
                         </div>
                         
                         <div className="footer-link-item">

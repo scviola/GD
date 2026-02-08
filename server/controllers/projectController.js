@@ -10,29 +10,33 @@ const createProject = async (req, res) => {
         for (const data of projectsData) {
             const { 
                 projectNumber, 
-                projectName, 
+                projectName,
+                field,
+                projectType,
+                location, 
                 architect, 
-                location,
-                contractor,
-                projectCostEstimate,
-                actualProjectCost,
+                mainContractor,
+                engEstimate,
+                finalAccount,
                 employeeAssigned,
                 stage,
                 status 
             } = data;
             
-            if (!projectNumber || !projectName || !architect || !location) {
-                return res.status(400).json({message: "Required fields: Project Number, Name, Architect, Location"});
+            if (!projectNumber || !projectName) {
+                return res.status(400).json({message: "Missing required fields"});
             }
             
             const newProject = await Project.create({ 
                 projectNumber, 
                 projectName, 
+                field,
+                projectType,
                 architect, 
                 location,
-                contractor: contractor || '',
-                projectCostEstimate: projectCostEstimate || 0,
-                actualProjectCost: actualProjectCost || 0,
+                mainContractor: mainContractor || '',
+                engEstimate: engEstimate,
+                finalAccount: finalAccount,
                 employeeAssigned: employeeAssigned || null,
                 stage: stage || '',
                 status: status || 'In Progress'
@@ -91,8 +95,8 @@ const updateProject = async (req, res) => {
 
         // Update all fields from request body
         const allowedFields = [
-            'projectNumber', 'projectName', 'architect', 'location',
-            'contractor', 'projectCostEstimate', 'actualProjectCost',
+            'projectNumber', 'projectName', 'field', 'projectType', 'architect', 'location',
+            'mainContractor', 'engEstimate', 'finalAccount',
             'employeeAssigned', 'stage', 'status'
         ];
         

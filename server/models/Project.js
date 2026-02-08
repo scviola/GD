@@ -12,23 +12,34 @@ const projectSchema = new mongoose.Schema(
             type: String,
             required: true
         },
-        architect: {
+        field: {
             type: String,
-            required: true
+            enum: ['Electrical', 'Mechanical'],
+            default: ''
+        },
+        projectType: {
+            type: String,
+            enum: ['Personal Hse', 'Hostel', 'Hotel', 'Office Block', 'Residential Apartment', 'Industrial', 'FitOut', 'Renovation', 'School', 'Research'],
+            default: ''
         },
         location: {
             type: String,
             required: true
         },
-        contractor: {
+        architect: {
+            type: String,
+            required: true
+        },
+
+        mainContractor: {
             type: String,
             default: ''
         },
-        projectCostEstimate: {
+        engEstimate: {
             type: Number,
             default: 0
         },
-        actualProjectCost: {
+        finalAccount: {
             type: Number,
             default: 0
         },

@@ -5,18 +5,19 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 // Pages
 import Login from './pages/Login';
-import Register from './pages/Register';
 import TaskLog from './pages/taskLog';
 import EmployeeSummaries from './pages/employeeSummaries';
 import AdminDashboard from './pages/AdminDashboard';
 import AnalyticsView from './components/AnalyticsView';
 import ProjectManager from './pages/ProjectManager';
 import UpdateProject from './pages/UpdateProject';
-import Home from './pages/Home'
+import Home from './pages/Home';
+import Unauthorized from './pages/Unauthorized';
+import Notes from './pages/Notes';
+import ProjectDetails from './pages/ProjectDetails';
 
 // Layout Components
 import Navbar from './components/Navbar';
-import Unauthorized from './pages/Unauthorized';
 import Footer from './components/Footer';
 
 const App = () => {
@@ -31,13 +32,14 @@ const App = () => {
               {/* Public Routes */}
               <Route path="/home" element={<Home />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
+              <Route path="/contact-admin" element={<Unauthorized message="Please contact your administrator to request access to the GDEA portal." />} />
 
-              {/* Employee & Admin Shared Access (Logging Tasks) */}
-              <Route element={<ProtectedRoute allowedRoles={['employee', 'admin']} />}>
+              {/* Staff & Admin Shared Access (Logging Tasks) */}
+              <Route element={<ProtectedRoute allowedRoles={['staff', 'admin']} />}>
                 <Route path="/employee-summaries" element={<EmployeeSummaries />} />
                 <Route path="/task-log" element={<TaskLog />} />
+                <Route path="/notes" element={<Notes />} />
               </Route>
 
               {/* Admin Only Routes */}
@@ -45,8 +47,9 @@ const App = () => {
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/analytics" element={<AnalyticsView />} />
                 <Route path="/project-manager" element={<ProjectManager />} />
-                <Route path="/admin/projects" element={<ProjectManager />} /> {/* Backward compatibility */}
+                <Route path="/admin/projects" element={<ProjectManager />} />
                 <Route path="/update-project/:id" element={<UpdateProject />} />
+                <Route path="/project-details/:projectId" element={<ProjectDetails />} />
               </Route>
 
               {/* Root Redirect */}

@@ -16,16 +16,13 @@ const Home = () => {
                         <div className="hero-logo">
                             <Building2 size={48} />
                         </div>
-                        <h1>GDEA Engineering Portal</h1>
+                        <h1>Gamma Delta Eastern Africa</h1>
                         <p className="hero-subtitle">
                             Internal project task management and cost reporting system.
                         </p>
                         <div className="hero-actions">
-                            <Link to="/register" className="btn btn-outline btn-lg">
-                                Get Started
-                            </Link>
                             <Link to="/login" className="btn btn-white btn-lg">
-                                Login
+                                Get Started
                             </Link>
                         </div>
                     </div>
@@ -81,12 +78,12 @@ const Home = () => {
                         <div className="about-content">
                             <h2>About the Portal</h2>
                             <p>
-                                The GDEA Engineering Portal is our internal system for managing engineering projects,
+                                The GDEA Portal is our internal system for managing engineering projects,
                                 tracking employee work hours, and reporting project costs.
                             </p>
                             <p>
-                                All employees are required to log their daily tasks through this system.
-                                Managers can monitor project progress and team productivity through the admin dashboard.
+                                All employees are required to log their daily project tasks through this system.
+                                The administrator can monitor project progress and team productivity through the admin dashboard.
                             </p>
                         </div>
                         <div className="about-features">
