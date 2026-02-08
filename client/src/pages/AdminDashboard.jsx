@@ -529,7 +529,7 @@ const AdminDashboard = () => {
       <div className="analytics-grid">
         {/* Projects Created Over Time */}
         <div className="chart-card">
-          <h4>Projects Added Over Time</h4>
+          <h4>Projects Recorded Over Time</h4>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={projectsOverTime}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -605,7 +605,7 @@ const AdminDashboard = () => {
         {/* Employee Workload Distribution */}
         {employeeWorkload.length > 0 && (
           <div className="chart-card">
-            <h4>Staff Workload Distribution</h4>
+            <h4>Workload Distribution</h4>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={employeeWorkload} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" />
@@ -639,15 +639,14 @@ const AdminDashboard = () => {
 
       {/* Employee Workload Table */}
       <div className="analytics-card">
-        <h3>Staff Workload Overview</h3>
+        <h3>Workload Overview</h3>
         <div className="table-responsive">
         <table className="spreadsheet-table">
           <thead>
             <tr>
-              <th>Staff Name</th>
+              <th>Engineer</th>
               <th>Active Projects</th>
               <th>Open Tasks</th>
-              <th>Overdue Tasks</th>
               <th>Workload Indicator</th>
             </tr>
           </thead>
@@ -657,7 +656,6 @@ const AdminDashboard = () => {
                 <td><strong>{emp.name}</strong></td>
                 <td>{emp.activeProjects}</td>
                 <td>{emp.openTasks}</td>
-                <td>{emp.overdueTasks > 0 ? <span style={{ color: 'red' }}>{emp.overdueTasks}</span> : 0}</td>
                 <td>{emp.workloadIndicator}</td>
               </tr>
             ))}
