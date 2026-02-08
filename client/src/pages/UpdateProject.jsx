@@ -228,23 +228,30 @@ const UpdateProject = () => {
                         
                         <div className="form-group">
                             <label>Assign Engineers</label>
-                            <select 
-                                name="employeeAssigned"
-                                multiple
-                                value={formData.employeeAssigned}
-                                onChange={(e) => {
-                                    const selected = Array.from(e.target.selectedOptions, option => option.value);
-                                    setFormData({...formData, employeeAssigned: selected});
-                                }}
-                                style={{ height: '120px' }}
-                            >
-                                <option value="">Select Engineers</option>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', maxHeight: '150px', overflowY: 'auto', border: '1px solid #ddd', padding: '10px' }}>
                                 {employees.map(emp => (
-                                    <option key={emp._id} value={emp._id}>
+                                    <label key={emp._id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.employeeAssigned.includes(emp._id)}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setFormData({
+                                                        ...formData,
+                                                        employeeAssigned: [...formData.employeeAssigned, emp._id]
+                                                    });
+                                                } else {
+                                                    setFormData({
+                                                        ...formData,
+                                                        employeeAssigned: formData.employeeAssigned.filter(id => id !== emp._id)
+                                                    });
+                                                }
+                                            }}
+                                        />
                                         {emp.name} ({emp.email})
-                                    </option>
+                                    </label>
                                 ))}
-                            </select>
+                            </div>
                         </div>
                     </div>
 

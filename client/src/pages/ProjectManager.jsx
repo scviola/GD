@@ -225,20 +225,35 @@ const ProjectManager = () => {
                         value={formData.finalAccount}
                         onChange={(e) => setFormData({...formData, finalAccount: e.target.value})}
                     />
-                    <select 
-                        multiple
-                        value={formData.employeeAssigned}
-                        onChange={(e) => {
-                            const selected = Array.from(e.target.selectedOptions, option => option.value);
-                            setFormData({...formData, employeeAssigned: selected});
-                        }}
-                        style={{ height: '120px' }}
-                    >
-                        <option value="">Assign Engineers</option>
-                        {employees.map(emp => (
-                            <option key={emp._id} value={emp._id}>{emp.name}</option>
-                        ))}
-                    </select>
+                    
+                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                        <label>Assign Engineers</label>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', maxHeight: '150px', overflowY: 'auto', border: '1px solid #ddd', padding: '10px' }}>
+                            {employees.map(emp => (
+                                <label key={emp._id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.employeeAssigned.includes(emp._id)}
+                                        onChange={(e) => {
+                                            if (e.target.checked) {
+                                                setFormData({
+                                                    ...formData,
+                                                    employeeAssigned: [...formData.employeeAssigned, emp._id]
+                                                });
+                                            } else {
+                                                setFormData({
+                                                    ...formData,
+                                                    employeeAssigned: formData.employeeAssigned.filter(id => id !== emp._id)
+                                                });
+                                            }
+                                        }}
+                                    />
+                                    {emp.name}
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+
                     <select 
                         value={formData.stage}
                         onChange={(e) => setFormData({...formData, stage: e.target.value})}
