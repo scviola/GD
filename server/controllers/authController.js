@@ -78,7 +78,8 @@ const changePassword = async (req, res, next) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                engineerType: user.engineerType
             }
         });
 
@@ -118,7 +119,8 @@ const login = async (req, res, next) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                engineerType: user.engineerType
             }
         });
 
@@ -130,8 +132,8 @@ const login = async (req, res, next) => {
 // POST /auth/register - Admin use only (creates user with admin-set password)
 const register = async (req, res, next) => {
     try {
-        const { name, email, password, role } = req.body;
-        if (!name || !email || !password)
+        const { name, email, password, role, engineerType } = req.body;
+        if (!name || !email || !password || !engineerType)
             return res.status(400).json({message: "Missing required fields"});
         
         const existingUser = await User.findOne({ email: email.toLowerCase() });
@@ -146,6 +148,7 @@ const register = async (req, res, next) => {
             email: email.toLowerCase(), 
             password: hashedPassword, 
             role,
+            engineerType,
             isRegistered: false 
         });
         
@@ -155,7 +158,8 @@ const register = async (req, res, next) => {
                 id: newUser._id,
                 name: newUser.name,
                 email: newUser.email,
-                role: newUser.role
+                role: newUser.role,
+                engineerType: newUser.engineerType
             }
         });
 

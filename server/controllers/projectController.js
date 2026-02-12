@@ -2,10 +2,6 @@ const Project = require('../models/Project');
 
 // POST /api/projects
 const createProject = async (req, res) => {
-    console.log('=== CREATE PROJECT DEBUG ===');
-    console.log('Request body:', JSON.stringify(req.body, null, 2));
-    console.log('Content-Type:', req.get('Content-Type'));
-    
     try {
         // Handle both single project and bulk creation
         const projectsData = Array.isArray(req.body) ? req.body : [req.body];
@@ -16,60 +12,37 @@ const createProject = async (req, res) => {
                 projectNumber, 
                 projectName,
                 projectType,
-                location, 
+                region,
+                county,
                 architect, 
-                mainContractor,
-                engEstimate,
-                finalAccount,
-                employeeAssigned,
+                mepContractSum,
+                electrical,
+                mechanical,
+                projectLead,
                 stage,
                 status 
             } = data;
             
-            console.log('Processing project:', projectNumber);
-            console.log('  - projectNumber:', projectNumber, typeof projectNumber);
-            console.log('  - projectName:', projectName, typeof projectName);
-            console.log('  - location:', location, typeof location);
-            console.log('  - architect:', architect, typeof architect);
-            console.log('  - engEstimate:', engEstimate, typeof engEstimate);
-            console.log('  - finalAccount:', finalAccount, typeof finalAccount);
-            console.log('  - employeeAssigned:', employeeAssigned, typeof employeeAssigned);
-            
             if (!projectNumber || !projectName) {
-                console.log('VALIDATION FAILED: Missing required fields');
                 return res.status(400).json({message: "Missing required fields"});
             }
             
             // Type conversion for numeric fields
-            const engEstimateNum = engEstimate ? Number(engEstimate) : 0;
-            const finalAccountNum = finalAccount ? Number(finalAccount) : 0;
-            
-            // Handle employeeAssigned as array
-            let employeeAssignedArray = [];
-            if (employeeAssigned) {
-                if (Array.isArray(employeeAssigned)) {
-                    employeeAssignedArray = employeeAssigned;
-                } else if (typeof employeeAssigned === 'string' && employeeAssigned) {
-                    employeeAssignedArray = [employeeAssigned];
-                }
-            }
-            
-            console.log('  - engEstimate (converted):', engEstimateNum, typeof engEstimateNum);
-            console.log('  - finalAccount (converted):', finalAccountNum, typeof finalAccountNum);
-            console.log('  - employeeAssigned (array):', employeeAssignedArray);
+            const mepContractSumNum = mepContractSum ? Number(mepContractSum) : 0;
             
             const newProject = await Project.create({ 
                 projectNumber, 
                 projectName, 
                 projectType,
+                region: region || '',
+                county: county || '',
                 architect, 
-                location,
-                mainContractor: mainContractor || '',
-                engEstimate: engEstimateNum,
-                finalAccount: finalAccountNum,
-                employeeAssigned: employeeAssignedArray,
+                mepContractSum: mepContractSumNum,
+                electrical: electrical || null,
+                mechanical: mechanical || null,
+                projectLead: projectLead || null,
                 stage: stage || '',
-                status: status || 'In Progress'
+                status: status || 'Active'
             });
             results.push(newProject);
         }
@@ -87,7 +60,6 @@ const createProject = async (req, res) => {
         console.log('Full error:', err);
         
         if (err.name === 'ValidationError') {
-            console.log('Validation errors:', err.errors);
             const validationErrors = Object.keys(err.errors).map(key => ({
                 field: key,
                 message: err.errors[key].message
@@ -98,7 +70,6 @@ const createProject = async (req, res) => {
             });
         }
         if (err.code === 11000) {
-            console.log('DUPLICATE KEY ERROR - projectNumber already exists');
             return res.status(400).json({ 
                 message: 'Error: Project number already exists. Please use a different project number.'
             });
@@ -115,7 +86,9 @@ const createProject = async (req, res) => {
 const getAllProjects = async (req, res) => {
     try {
         const projects = await Project.find()
-            .populate('employeeAssigned', 'name email')
+            .populate('electrical', 'name email')
+            .populate('mechanical', 'name email')
+            .populate('projectLead', 'name email')
             .sort('projectNumber');
         res.status(200).json(projects || []);
 
@@ -128,7 +101,9 @@ const getAllProjects = async (req, res) => {
 const getProjectById = async (req, res) => {
     try {
         const project = await Project.findById(req.params.id)
-            .populate('employeeAssigned', 'name email');
+            .populate('electrical', 'name email')
+            .populate('mechanical', 'name email')
+            .populate('projectLead', 'name email');
         if (!project) {
             return res.status(404).json({ message: 'Project not found' });
         }
@@ -149,9 +124,9 @@ const updateProject = async (req, res) => {
 
         // Update all fields from request body
         const allowedFields = [
-            'projectNumber', 'projectName', 'projectType', 'architect', 'location',
-            'mainContractor', 'engEstimate', 'finalAccount',
-            'employeeAssigned', 'stage', 'status'
+            'projectNumber', 'projectName', 'projectType', 'region', 'county',
+            'architect', 'mepContractSum', 'electrical', 'mechanical',
+            'projectLead', 'stage', 'status'
         ];
         
         allowedFields.forEach(field => {

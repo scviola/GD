@@ -31,6 +31,11 @@ const userSchema = new mongoose.Schema (
             enum: ["admin", "staff"],
             default: "staff"
         },
+        engineerType: {
+            type: String,
+            enum: ["Electrical", "Mechanical"],
+            required: true
+        },
         isRegistered: {
             type: Boolean,
             default: false

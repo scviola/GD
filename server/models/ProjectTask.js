@@ -21,36 +21,32 @@ const projectTaskSchema = new mongoose.Schema(
             enum: [
                 'Pre-design',
                 'Design',
-                'Construction & Monitoring',
-                'Procurement',
-                'Commissioning',
-                'General'
+                'Tendering',
+                'Construction & Supervision',
+                'Snugging, Testing & Commissioning',
+                "Handover",
+                'Other(specify)'
                 ],
                 required: true
         },
-        task: {
+        taskCategory: {
             type: String,
             enum: [
+                'Concept',
                 'Design',
-                'Inspection',
-                'Site Meeting',
-                'Valuation',
-                'Testing',
-                'Commissioning',
-                'Documentation',
-                'Coordination Meeting'
+                'Tender Documentation',
+                'Construction',
+                'Snugging',
+                'Testing & Commissioning',
+                'Handover'
             ],
             required: true
         },
-        status: {
+        specificTask: {
             type: String,
-            enum: ['Active', 'Pending', 'In Progress', 'Completed', 'On Hold'],
             required: true
         },
-        description: {
-            type: String
-        },
-        manHours: {
+        projectHours: {
             type: Number,
             required: true
         },
@@ -60,7 +56,7 @@ const projectTaskSchema = new mongoose.Schema(
         },
         transportMode: {
             type: String,
-            enum: ['Road', 'Flight']
+            enum: ['Road', 'Flight', 'Other']
         },
         mileage: {
             type: Number,
@@ -72,6 +68,9 @@ const projectTaskSchema = new mongoose.Schema(
         travelHours: {
             type: Number,
             default: 0
+        },
+        totalManHours: {
+            type: Number
         }
     },
     { timestamps: true }

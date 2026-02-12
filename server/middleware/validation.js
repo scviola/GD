@@ -16,50 +16,55 @@ const createProjectValidation = [
             'Personal Hse', 'Hostel', 'Hotel', 'Office Block', 'Residential Apartment',
             'Industrial', 'FitOut', 'Renovation', 'School', 'Research'
         ]).withMessage('Invalid project type'),
-    body('location')
+    body('region')
+        .optional()
+        .isIn(['Coast', 'Western', 'Eastern', 'North Eastern', 'Rift Valley', 'Central', 'Nyanza', 'Nairobi'])
+        .withMessage('Invalid region'),
+    body('county')
         .trim()
         .optional()
-        .isLength({ max: 300 }).withMessage('Location must be less than 300 characters'),
+        .isLength({ max: 100 }).withMessage('County must be less than 100 characters'),
     body('architect')
         .trim()
         .optional()
         .isLength({ max: 200 }).withMessage('Architect name must be less than 200 characters'),
-    body('mainContractor')
-        .trim()
-        .optional()
-        .isLength({ max: 200 }).withMessage('Main contractor must be less than 200 characters'),
-    body('engEstimate')
+    body('mepContractSum')
         .optional({ nullable: true, checkFalsy: true })
         .custom((value) => {
             if (value === '' || value === null || value === undefined) return true;
             return !isNaN(value) && !isNaN(parseFloat(value));
-        }).withMessage('Engineering estimate must be a number'),
-    body('finalAccount')
-        .optional({ nullable: true, checkFalsy: true })
-        .custom((value) => {
-            if (value === '' || value === null || value === undefined) return true;
-            return !isNaN(value) && !isNaN(parseFloat(value));
-        }).withMessage('Final account must be a number'),
-    body('employeeAssigned')
+        }).withMessage('MEP contract sum must be a number'),
+    body('electrical')
         .optional({ nullable: true, checkFalsy: true })
         .custom((value) => {
             if (value === '' || value === null || value === undefined) return true;
             const mongoose = require('mongoose');
-            // Handle both single ID and array of IDs
-            if (Array.isArray(value)) {
-                return value.every(id => mongoose.Types.ObjectId.isValid(id));
-            }
             return mongoose.Types.ObjectId.isValid(value);
-        }).withMessage('Invalid employee ID'),
+        }).withMessage('Invalid electrical engineer ID'),
+    body('mechanical')
+        .optional({ nullable: true, checkFalsy: true })
+        .custom((value) => {
+            if (value === '' || value === null || value === undefined) return true;
+            const mongoose = require('mongoose');
+            return mongoose.Types.ObjectId.isValid(value);
+        }).withMessage('Invalid mechanical engineer ID'),
+    body('projectLead')
+        .optional({ nullable: true, checkFalsy: true })
+        .custom((value) => {
+            if (value === '' || value === null || value === undefined) return true;
+            const mongoose = require('mongoose');
+            return mongoose.Types.ObjectId.isValid(value);
+        }).withMessage('Invalid project lead ID'),
     body('stage')
         .optional()
         .isIn([
-            'Tendering', 'Procurement', 'Pre-Design', 'Design',
-            'Construction & Monitoring', 'Commissioning', 'Handover'
+            'Pre-design', 'Design', 'Tendering', 
+            'Construction & Supervision', 'Snugging, Testing & Commissioning',
+            'Handover', 'Other(specify)'
         ]).withMessage('Invalid stage'),
     body('status')
         .optional()
-        .isIn(['Active', 'Pending', 'In Progress', 'Completed', 'On Hold'])
+        .isIn(['Active', 'Completed', 'Stalled'])
         .withMessage('Invalid status')
 ];
 
@@ -83,50 +88,55 @@ const updateProjectValidation = [
             'Personal Hse', 'Hostel', 'Hotel', 'Office Block', 'Residential Apartment',
             'Industrial', 'FitOut', 'Renovation', 'School', 'Research'
         ]).withMessage('Invalid project type'),
-    body('location')
+    body('region')
+        .optional()
+        .isIn(['Coast', 'Western', 'Eastern', 'North Eastern', 'Rift Valley', 'Central', 'Nyanza', 'Nairobi'])
+        .withMessage('Invalid region'),
+    body('county')
         .optional()
         .trim()
-        .isLength({ max: 300 }).withMessage('Location must be less than 300 characters'),
+        .isLength({ max: 100 }).withMessage('County must be less than 100 characters'),
     body('architect')
         .optional()
         .trim()
         .isLength({ max: 200 }).withMessage('Architect name must be less than 200 characters'),
-    body('mainContractor')
-        .optional()
-        .trim()
-        .isLength({ max: 200 }).withMessage('Main contractor must be less than 200 characters'),
-    body('engEstimate')
+    body('mepContractSum')
         .optional({ nullable: true, checkFalsy: true })
         .custom((value) => {
             if (value === '' || value === null || value === undefined) return true;
             return !isNaN(value) && !isNaN(parseFloat(value));
-        }).withMessage('Engineering estimate must be a number'),
-    body('finalAccount')
-        .optional({ nullable: true, checkFalsy: true })
-        .custom((value) => {
-            if (value === '' || value === null || value === undefined) return true;
-            return !isNaN(value) && !isNaN(parseFloat(value));
-        }).withMessage('Final account must be a number'),
-    body('employeeAssigned')
+        }).withMessage('MEP contract sum must be a number'),
+    body('electrical')
         .optional({ nullable: true, checkFalsy: true })
         .custom((value) => {
             if (value === '' || value === null || value === undefined) return true;
             const mongoose = require('mongoose');
-            // Handle both single ID and array of IDs
-            if (Array.isArray(value)) {
-                return value.every(id => mongoose.Types.ObjectId.isValid(id));
-            }
             return mongoose.Types.ObjectId.isValid(value);
-        }).withMessage('Invalid employee ID'),
+        }).withMessage('Invalid electrical engineer ID'),
+    body('mechanical')
+        .optional({ nullable: true, checkFalsy: true })
+        .custom((value) => {
+            if (value === '' || value === null || value === undefined) return true;
+            const mongoose = require('mongoose');
+            return mongoose.Types.ObjectId.isValid(value);
+        }).withMessage('Invalid mechanical engineer ID'),
+    body('projectLead')
+        .optional({ nullable: true, checkFalsy: true })
+        .custom((value) => {
+            if (value === '' || value === null || value === undefined) return true;
+            const mongoose = require('mongoose');
+            return mongoose.Types.ObjectId.isValid(value);
+        }).withMessage('Invalid project lead ID'),
     body('stage')
         .optional()
         .isIn([
-            'Tendering', 'Procurement', 'Pre-Design', 'Design',
-            'Construction & Monitoring', 'Commissioning', 'Handover'
+            'Pre-design', 'Design', 'Tendering', 
+            'Construction & Supervision', 'Snugging, Testing & Commissioning',
+            'Handover', 'Other(specify)'
         ]).withMessage('Invalid stage'),
     body('status')
         .optional()
-        .isIn(['Active', 'Pending', 'In Progress', 'Completed', 'On Hold'])
+        .isIn(['Active', 'Completed', 'Stalled'])
         .withMessage('Invalid status')
 ];
 

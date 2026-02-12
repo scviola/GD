@@ -7,7 +7,7 @@ const UpdateProject = () => {
     const navigate = useNavigate();
     
     const [project, setProject] = useState(null);
-    const [employees, setEmployees] = useState([]);
+    const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
@@ -16,14 +16,15 @@ const UpdateProject = () => {
         projectNumber: '',
         projectName: '',
         projectType: '',
-        location: '',
+        region: '',
+        county: '',
         architect: '',
-        mainContractor: '',
-        engEstimate: '',
-        finalAccount: '',
-        employeeAssigned: [],
+        mepContractSum: '',
+        electrical: '',
+        mechanical: '',
+        projectLead: '',
         stage: '',
-        status: 'In Progress'
+        status: 'Active'
     });
 
     const PROJECT_TYPE_OPTIONS = [
@@ -39,31 +40,55 @@ const UpdateProject = () => {
         'Research'
     ];
 
-    // Fetch project and employees
+    const REGION_OPTIONS = [
+        'Coast',
+        'Western',
+        'Eastern',
+        'North Eastern',
+        'Rift Valley',
+        'Central',
+        'Nyanza',
+        'Nairobi'
+    ];
+
+    const COUNTIES_BY_REGION = {
+        'Coast': ['Mombasa', 'Kwale', 'Kilifi', 'Tana River', 'Lamu', 'Taita Taveta'],
+        'Western': ['Kakamega', 'Vihiga', 'Bungoma', 'Busia'],
+        'Eastern': ['Machakos', 'Kitui', 'Makueni', 'Meru', 'Embu', 'Tharaka Nithi', 'Isiolo'],
+        'North Eastern': ['Garissa', 'Wajir', 'Mandera'],
+        'Rift Valley': ['Nakuru', 'Uasin Gishu', 'Narok', 'Kajiado', 'Baringo', 'Laikipia', 'Kericho', 'Bomet', 'Nandi', 'Elgeyo Marakwet', 'West Pokot', 'Samburu', 'Trans Nzoia', 'Turkana'],
+        'Central': ['Kiambu', 'Murang\'a', 'Nyeri', 'Kirinyaga', 'Nyandarua'],
+        'Nyanza': ['Kisumu', 'Siaya', 'Homa Bay', 'Migori', 'Kisii', 'Nyamira'],
+        'Nairobi': ['Nairobi']
+    };
+
+    // Fetch project and users
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [projectRes, employeesRes] = await Promise.all([
+                const [projectRes, usersRes] = await Promise.all([
                     api.get(`/projects/${id}`),
                     api.get('/users')
                 ]);
                 
-                setProject(projectRes.data);
-                setEmployees(employeesRes.data);
+                const projectData = projectRes.data;
+                setProject(projectData);
+                setUsers(usersRes.data);
                 
                 // Initialize form with project data
                 setFormData({
-                    projectNumber: projectRes.data.projectNumber || '',
-                    projectName: projectRes.data.projectName || '',
-                    projectType: projectRes.data.projectType || '',
-                    location: projectRes.data.location || '',
-                    architect: projectRes.data.architect || '',
-                    mainContractor: projectRes.data.mainContractor || '',
-                    engEstimate: projectRes.data.engEstimate || '',
-                    finalAccount: projectRes.data.finalAccount || '',
-                    employeeAssigned: projectRes.data.employeeAssigned || [],
-                    stage: projectRes.data.stage || '',
-                    status: projectRes.data.status || 'In Progress'
+                    projectNumber: projectData.projectNumber || '',
+                    projectName: projectData.projectName || '',
+                    projectType: projectData.projectType || '',
+                    region: projectData.region || '',
+                    county: projectData.county || '',
+                    architect: projectData.architect || '',
+                    mepContractSum: projectData.mepContractSum || '',
+                    electrical: projectData.electrical?._id || projectData.electrical || '',
+                    mechanical: projectData.mechanical?._id || projectData.mechanical || '',
+                    projectLead: projectData.projectLead?._id || projectData.projectLead || '',
+                    stage: projectData.stage || '',
+                    status: projectData.status || 'Active'
                 });
             } catch (err) {
                 console.error("Error fetching data", err);
@@ -76,10 +101,21 @@ const UpdateProject = () => {
     }, [id]);
 
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
+        const { name, value } = e.target;
+        
+        // Reset county when region changes
+        if (name === 'region') {
+            setFormData({
+                ...formData,
+                [name]: value,
+                county: ''
+            });
+        } else {
+            setFormData({
+                ...formData,
+                [name]: value
+            });
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -165,26 +201,45 @@ const UpdateProject = () => {
                                 ))}
                             </select>
                         </div>
-                        
+                    </div>
+
+                    <div className="form-row">
                         <div className="form-group">
-                            <label>Location</label>
-                            <input 
-                                type="text" 
-                                name="location"
-                                value={formData.location}
+                            <label>Region</label>
+                            <select 
+                                name="region"
+                                value={formData.region}
                                 onChange={handleChange}
-                                placeholder="Enter location"
-                            />
+                            >
+                                <option value="">Select Region</option>
+                                {REGION_OPTIONS.map(region => (
+                                    <option key={region} value={region}>{region}</option>
+                                ))}
+                            </select>
                         </div>
                         
                         <div className="form-group">
-                            <label>Architect *</label>
+                            <label>County</label>
+                            <select 
+                                name="county"
+                                value={formData.county}
+                                onChange={handleChange}
+                                disabled={!formData.region}
+                            >
+                                <option value="">Select County</option>
+                                {formData.region && COUNTIES_BY_REGION[formData.region]?.map(county => (
+                                    <option key={county} value={county}>{county}</option>
+                                ))}
+                            </select>
+                        </div>
+                        
+                        <div className="form-group">
+                            <label>Architect</label>
                             <input 
                                 type="text" 
                                 name="architect"
                                 value={formData.architect}
                                 onChange={handleChange}
-                                required
                                 placeholder="Enter architect name"
                             />
                         </div>
@@ -192,22 +247,11 @@ const UpdateProject = () => {
 
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Main Contractor</label>
-                            <input 
-                                type="text" 
-                                name="mainContractor"
-                                value={formData.mainContractor}
-                                onChange={handleChange}
-                                placeholder="Enter contractor name"
-                            />
-                        </div>
-                        
-                        <div className="form-group">
-                            <label>ENG Estimate (Ksh)</label>
+                            <label>MEP Contract Sum (Ksh)</label>
                             <input 
                                 type="number" 
-                                name="engEstimate"
-                                value={formData.engEstimate}
+                                name="mepContractSum"
+                                value={formData.mepContractSum}
                                 onChange={handleChange}
                                 placeholder="0.00"
                             />
@@ -216,42 +260,45 @@ const UpdateProject = () => {
 
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Final Account (Ksh)</label>
-                            <input 
-                                type="number" 
-                                name="finalAccount"
-                                value={formData.finalAccount}
+                            <label>Electrical Engineer</label>
+                            <select 
+                                name="electrical"
+                                value={formData.electrical}
                                 onChange={handleChange}
-                                placeholder="0.00"
-                            />
+                            >
+                                <option value="">Assign Electrical</option>
+                                {users.filter(user => user.engineerType === 'Electrical').map(user => (
+                                    <option key={user._id} value={user._id}>{user.name}</option>
+                                ))}
+                            </select>
                         </div>
                         
                         <div className="form-group">
-                            <label>Assign Engineers</label>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', maxHeight: '150px', overflowY: 'auto', border: '1px solid #ddd', padding: '10px' }}>
-                                {employees.map(emp => (
-                                    <label key={emp._id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <input
-                                            type="checkbox"
-                                            checked={formData.employeeAssigned.includes(emp._id)}
-                                            onChange={(e) => {
-                                                if (e.target.checked) {
-                                                    setFormData({
-                                                        ...formData,
-                                                        employeeAssigned: [...formData.employeeAssigned, emp._id]
-                                                    });
-                                                } else {
-                                                    setFormData({
-                                                        ...formData,
-                                                        employeeAssigned: formData.employeeAssigned.filter(id => id !== emp._id)
-                                                    });
-                                                }
-                                            }}
-                                        />
-                                        {emp.name} ({emp.email})
-                                    </label>
+                            <label>Mechanical Engineer</label>
+                            <select 
+                                name="mechanical"
+                                value={formData.mechanical}
+                                onChange={handleChange}
+                            >
+                                <option value="">Assign Mechanical</option>
+                                {users.filter(user => user.engineerType === 'Mechanical').map(user => (
+                                    <option key={user._id} value={user._id}>{user.name}</option>
                                 ))}
-                            </div>
+                            </select>
+                        </div>
+                        
+                        <div className="form-group">
+                            <label>Project Lead</label>
+                            <select 
+                                name="projectLead"
+                                value={formData.projectLead}
+                                onChange={handleChange}
+                            >
+                                <option value="">Select Project Lead</option>
+                                {users.map(user => (
+                                    <option key={user._id} value={user._id}>{user.name}</option>
+                                ))}
+                            </select>
                         </div>
                     </div>
 
@@ -264,13 +311,13 @@ const UpdateProject = () => {
                                 onChange={handleChange}
                             >
                                 <option value="">Select Stage</option>
-                                <option value="Tendering">Tendering</option>
-                                <option value="Procurement">Procurement</option>
                                 <option value="Pre-Design">Pre-Design</option>
                                 <option value="Design">Design</option>
-                                <option value="Construction & Monitoring">Construction & Monitoring</option>
-                                <option value="Commissioning">Commissioning</option>
+                                <option value="Tendering">Tendering</option>
+                                <option value="Construction & Supervision">Construction & Supervision</option>
+                                <option value="Snagging, Testing & Commissioning">Snagging, Testing & Commissioning</option>
                                 <option value="Handover">Handover</option>
+                                <option value="Other(specify)">Other(specify)</option>
                             </select>
                         </div>
                         
@@ -282,10 +329,8 @@ const UpdateProject = () => {
                                 onChange={handleChange}
                             >
                                 <option value="Active">Active</option>
-                                <option value="Pending">Pending</option>
-                                <option value="In Progress">In Progress</option>
                                 <option value="Completed">Completed</option>
-                                <option value="On Hold">On Hold</option>
+                                <option value="Stalled">Stalled</option>
                             </select>
                         </div>
                     </div>

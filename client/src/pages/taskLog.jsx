@@ -8,23 +8,14 @@ const TaskLog = () => {
   const [projectSearch, setProjectSearch] = useState('');
   const [projectNumber, setProjectNumber] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [loggedProjectIds, setLoggedProjectIds] = useState([]); // Track logged projects for selected date
-
-  const [taskOptions, setTaskOptions] = useState({
-    stages: [],
-    tasks: [],
-    statuses: [],
-    transportModes: []
-  });
 
   const [formData, setFormData] = useState({
     projectName: '',
     workDate: '',
     stage: '',
-    task: '',
-    status: '',
-    description: '',
-    manHours: '',
+    taskCategory: '',
+    specificTask: '',
+    projectHours: '',
     leavesOffice: false,
     transportMode: '',
     travelHours: '',
@@ -43,26 +34,14 @@ const TaskLog = () => {
         const userId = user?.id || user?._id;
         if (userId) {
           const assigned = projects.filter(p => {
-            const empAssigned = p.employeeAssigned;
-            if (!empAssigned) return false;
-
-        // Handle array of assigned engineers
-        if (Array.isArray(empAssigned)) {
-          return empAssigned.some(assignedId => {
-            if (typeof assignedId === 'object') {
-              return assignedId._id === userId;
-            }
-            return assignedId === userId;
+            // Check if user is assigned as electrical, mechanical, or project lead
+            const isElectrical = p.electrical?._id === userId || p.electrical === userId;
+            const isMechanical = p.mechanical?._id === userId || p.mechanical === userId;
+            const isProjectLead = p.projectLead?._id === userId || p.projectLead === userId;
+            return isElectrical || isMechanical || isProjectLead;
           });
+          setMyProjects(assigned);
         }
-        // Handle single assignment
-        if (typeof empAssigned === 'object') {
-          return empAssigned._id === userId;
-        }
-        return empAssigned === userId;
-        });
-        setMyProjects(assigned);
-      }
       } catch (err) {
         console.error('Failed to load projects', err);
       }
@@ -70,57 +49,26 @@ const TaskLog = () => {
     fetchProjects();
   }, [user]);
 
-  // FETCH LOGGED PROJECTS FOR SELECTED DATE
-  useEffect(() => {
-    // Clear project selection when date changes (tasks are date-specific)
-    // This ensures user selects a project for the correct date
-    if (formData.projectName && formData.workDate) {
-      const fetchLoggedProjects = async () => {
-        try {
-          const res = await api.get(`/tasks/logged-projects?date=${formData.workDate}`);
-          setLoggedProjectIds(res.data);
-          
-          // Clear selected project if it was already logged for this date
-          if (res.data.includes(formData.projectName)) {
-            setFormData(prev => ({ ...prev, projectName: '' }));
-            setProjectNumber('');
-          }
-        } catch (err) {
-          console.error('Failed to fetch logged projects', err);
-        }
-      };
-      
-      fetchLoggedProjects();
-    } else if (!formData.workDate) {
-      setLoggedProjectIds([]);
-    }
-  }, [formData.workDate, formData.projectName]);
 
-  // FETCH TASK ENUM OPTIONS
-  useEffect(() => {
-    const fetchTaskOptions = async () => {
-      try {
-        const res = await api.get('/meta/task-options');
-        setTaskOptions(res.data);
-      } catch (err) {
-        console.error('Failed to load task options', err);
-      }
-    };
-    fetchTaskOptions();
-  }, []);
-
-  // Filter projects for dropdown (exclude already logged projects)
+  // Filter projects for dropdown (show all assigned projects)
   const filteredProjects = myProjects.filter(p =>
-    `${p.projectNumber} ${p.projectName}`.toLowerCase().includes(projectSearch.toLowerCase()) &&
-    !loggedProjectIds.includes(p._id)
+    `${p.projectNumber} ${p.projectName}`.toLowerCase().includes(projectSearch.toLowerCase())
   );
 
-  // Check if all projects are already logged for the selected date
-  const allProjectsLogged = myProjects.length > 0 && 
-    myProjects.every(p => loggedProjectIds.includes(p._id));
-
-  // Get available projects count
-  const availableProjectsCount = myProjects.filter(p => !loggedProjectIds.includes(p._id)).length;
+  // Auto-populate project name when project number is typed
+  useEffect(() => {
+    if (projectSearch.trim()) {
+      // Check if projectSearch matches a project number exactly
+      const exactMatch = myProjects.find(p => 
+        p.projectNumber.toLowerCase() === projectSearch.toLowerCase().trim()
+      );
+      if (exactMatch) {
+        setFormData(prev => ({ ...prev, projectName: exactMatch._id }));
+        setProjectNumber(exactMatch.projectNumber);
+        return;
+      }
+    }
+  }, [projectSearch, myProjects]);
 
   // Auto-select project when search yields exactly one result
   useEffect(() => {
@@ -146,22 +94,9 @@ const TaskLog = () => {
   };
 
   const handleChange = (field, value) => {
-    if (field === 'workDate') {
-      // Clear project selection when date changes
-      setFormData(prev => ({ ...prev, projectName: '', workDate: value }));
-      setProjectNumber('');
-      return;
-    }
-    
-    if (field === 'leavesOffice' && value === false) {
-      setFormData(prev => ({
-        ...prev,
-        leavesOffice: false,
-        transportMode: '',
-        travelHours: '',
-        mileage: '',
-        destination: ''
-      }));
+    // Clear specific task when task category changes
+    if (field === 'taskCategory') {
+      setFormData(prev => ({ ...prev, taskCategory: value, specificTask: '' }));
       return;
     }
     // Clear mileage/destination when transport mode changes
@@ -174,6 +109,17 @@ const TaskLog = () => {
       }));
       return;
     }
+    if (field === 'leavesOffice' && value === false) {
+      setFormData(prev => ({
+        ...prev,
+        leavesOffice: false,
+        transportMode: '',
+        travelHours: '',
+        mileage: '',
+        destination: ''
+      }));
+      return;
+    }
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -182,16 +128,20 @@ const TaskLog = () => {
     setSubmitting(true);
 
     try {
-      await api.post('/tasks', formData);
-      alert('Task logged successfully');
+      const res = await api.post('/tasks', formData);
+      if (res.status === 200 || res.status === 201) {
+        const message = res.status === 200 
+          ? 'Task updated successfully'
+          : 'Task logged successfully';
+        alert(message);
+      }
       setFormData({
         projectName: '',
         workDate: '',
         stage: '',
-        task: '',
-        status: '',
-        description: '',
-        manHours: '',
+        taskCategory: '',
+        specificTask: '',
+        projectHours: '',
         leavesOffice: false,
         transportMode: '',
         travelHours: '',
@@ -218,38 +168,17 @@ const TaskLog = () => {
             {' '}You haven't been assigned any projects yet.
           </span>
         )}
-        {allProjectsLogged && (
-          <span className="warning-text">
-            {' '}You have already logged all your assigned projects for this date.
-          </span>
-        )}
       </p>
 
-      {availableProjectsCount > 0 && (
-        <p className="info-text" style={{ fontSize: '0.9em', color: '#666' }}>
-          {availableProjectsCount} project{availableProjectsCount !== 1 ? 's' : ''} available for logging today
-        </p>
-      )}
-
-      <form onSubmit={handleSubmit} className="task-form" style={{ opacity: allProjectsLogged ? 0.6 : 1 }}>
-        {/* Project Search */}
-        <label>Search Project (Number or Name)</label>
-        <input
-          type="text"
-          placeholder="Type to search your assigned projects..."
-          value={projectSearch}
-          onChange={(e) => setProjectSearch(e.target.value)}
-          disabled={myProjects.length === 0 || allProjectsLogged}
-        />
-
-        {/* Project Number (read-only hint) */}
+      <form onSubmit={handleSubmit} className="task-form">
+        {/* Project Number (read-only) */}
         <label>Project Number</label>
         <input
           type="text"
-          placeholder={projectNumber || "Select a project below..."}
+          placeholder="Select a project to auto-populate..."
           value={projectNumber}
           readOnly
-          disabled
+          style={{ backgroundColor: '#f5f5f5' }}
         />
 
         {/* Project Dropdown - Only shows assigned projects */}
@@ -258,7 +187,7 @@ const TaskLog = () => {
           required
           value={formData.projectName}
           onChange={handleProjectNameChange}
-          disabled={myProjects.length === 0 || allProjectsLogged}
+          disabled={myProjects.length === 0}
         >
           <option value="">Select Project...</option>
           {filteredProjects.map(project => (
@@ -290,46 +219,55 @@ const TaskLog = () => {
           required
           value={formData.stage}
           onChange={(e) => handleChange('stage', e.target.value)}
-          disabled={allProjectsLogged}
         >
           <option value="">Select Stage...</option>
-          {taskOptions.stages.map(stage => (
-            <option key={stage} value={stage}>{stage}</option>
-          ))}
+          <option value="Pre-design">Pre-design</option>
+          <option value="Design">Design</option>
+          <option value="Tendering">Tendering</option>
+          <option value="Construction & Supervision">Construction & Supervision</option>
+          <option value="Snugging, Testing & Commissioning">Snugging, Testing & Commissioning</option>
+          <option value="Handover">Handover</option>
+          <option value="Other(specify)">Other(specify)</option>
         </select>
 
-        {/* Task Type */}
-        <label>Task *</label>
+        {/* Task Category */}
+        <label>Task Category *</label>
         <select
           required
-          value={formData.task}
-          onChange={(e) => handleChange('task', e.target.value)}
-          disabled={allProjectsLogged}
+          value={formData.taskCategory}
+          onChange={(e) => handleChange('taskCategory', e.target.value)}
         >
-          <option value="">Select Task...</option>
-          {taskOptions.tasks.map(task => (
-            <option key={task} value={task}>{task}</option>
-          ))}
+          <option value="">Select Category...</option>
+          <option value="Concept">Concept</option>
+          <option value="Design">Design</option>
+          <option value="Tender Documentation">Tender Documentation</option>
+          <option value="Construction">Construction</option>
+          <option value="Snugging">Snugging</option>
+          <option value="Testing & Commissioning">Testing & Commissioning</option>
+          <option value="Handover">Handover</option>
         </select>
 
-        {/* Description */}
-        <label>Description</label>
-        <textarea
-          placeholder="Optional"
-          value={formData.description}
-          onChange={(e) => handleChange('description', e.target.value)}
-          disabled={allProjectsLogged}
+        {/* Specific Task */}
+        <label>Specific Task *</label>
+        <input
+          type="text"
+          required
+          placeholder="Enter specific task..."
+          value={formData.specificTask}
+          onChange={(e) => handleChange('specificTask', e.target.value)}
+          disabled={!formData.taskCategory}
         />
 
-        {/* Man Hours */}
-        <label>Total Man Hours *</label>
+        {/* Project Hours */}
+        <label>Project Hours *</label>
         <input
           type="number"
-          step="0.25"
+          min="0"
+          step="0.01"
+          placeholder="Enter hours (e.g., 0.5 for 30 min, 1 for 1 hour)"
           required
-          value={formData.manHours}
-          onChange={(e) => handleChange('manHours', e.target.value)}
-          disabled={allProjectsLogged}
+          value={formData.projectHours}
+          onChange={(e) => handleChange('projectHours', e.target.value)}
         />
 
         {/* Leaves Office */}
@@ -338,7 +276,6 @@ const TaskLog = () => {
             type="checkbox"
             checked={formData.leavesOffice}
             onChange={(e) => handleChange('leavesOffice', e.target.checked)}
-            disabled={allProjectsLogged}
           />
           Work involved leaving the office
         </label>
@@ -353,15 +290,17 @@ const TaskLog = () => {
               onChange={(e) => handleChange('transportMode', e.target.value)}
             >
               <option value="">Select...</option>
-              {taskOptions.transportModes.map(mode => (
-                <option key={mode} value={mode}>{mode}</option>
-              ))}
+              <option value="Road">Road</option>
+              <option value="Flight">Flight</option>
+              <option value="Other">Other</option>
             </select>
 
             <label>Travel Hours *</label>
             <input
               type="number"
-              step="0.25"
+              min="0"
+              step="0.01"
+              placeholder="Enter hours (e.g., 0.5 for 30 min, 1 for 1 hour)"
               required
               value={formData.travelHours}
               onChange={(e) => handleChange('travelHours', e.target.value)}
@@ -397,21 +336,18 @@ const TaskLog = () => {
           </>
         )}
 
-        {/* Status */}
-        <label>Project Status *</label>
-        <select
-          required
-          value={formData.status}
-          onChange={(e) => handleChange('status', e.target.value)}
-          disabled={allProjectsLogged}
-        >
-          <option value="">Select Project Status...</option>
-          {taskOptions.statuses.map(status => (
-            <option key={status} value={status}>{status}</option>
-          ))}
-        </select>
+        {/* Total Man Hours (calculated) */}
+        <label>Total Man Hours</label>
+        <input
+          type="number"
+          min="0"
+          step="0.01"
+          value={Number(formData.projectHours || 0) + Number(formData.travelHours || 0)}
+          readOnly
+          style={{ backgroundColor: '#f5f5f5' }}
+        />
 
-        <button type="submit" disabled={submitting || myProjects.length === 0 || allProjectsLogged}>
+        <button type="submit" disabled={submitting || myProjects.length === 0}>
           {submitting ? 'Saving...' : 'Submit'}
         </button>
       </form>

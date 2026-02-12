@@ -17,37 +17,52 @@ const projectSchema = new mongoose.Schema(
             enum: ['Personal Hse', 'Hostel', 'Hotel', 'Office Block', 'Residential Apartment', 'Industrial', 'FitOut', 'Renovation', 'School', 'Research'],
             default: ''
         },
-        location: {
+        region: {
             type: String,
+            enum: ['Coast', 'Western', 'Eastern', 'North Eastern', 'Rift Valley', 'Central', 'Nyanza', 'Nairobi'],
+        },
+        county: {
+            type: String,
+            default: ''
         },
         architect: {
             type: String,
         },
-
-        mainContractor: {
-            type: String,
-            default: ''
-        },
-        engEstimate: {
+        mepContractSum: {
             type: Number,
             default: 0
         },
-        finalAccount: {
-            type: Number,
-            default: 0
-        },
-        employeeAssigned: [{
+        electrical: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'User'
-        }],
+            ref: 'User',
+            default: null
+        },
+        mechanical: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            default: null
+        },
+        projectLead: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            default: null
+        },
         stage: {
             type: String,
-            default: ''
+            enum: [
+                'Pre-design',
+                'Design',
+                'Tendering',
+                'Construction & Supervision',
+                'Snugging, Testing & Commissioning',
+                "Handover",
+                'Other(specify)'
+                ]
         },
         status: {
             type: String,
-            enum: ['Active', 'Pending', 'In Progress', 'Completed', 'On Hold'],
-            default: 'In Progress'
+            enum: ['Active', 'Completed', 'Stalled'],
+            default: 'Active'
         }
     },
     { timestamps: true }

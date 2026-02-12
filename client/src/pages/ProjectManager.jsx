@@ -1,27 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 
 const ProjectManager = () => {
-    const navigate = useNavigate();
     const [projects, setProjects] = useState([]);
-    const [employees, setEmployees] = useState([]);
+    const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchParams] = useSearchParams();
-    const [newlyCreatedProject, setNewlyCreatedProject] = useState(null);
     
     const [formData, setFormData] = useState({
         projectNumber: '',
         projectName: '',
         projectType: '',
-        location: '',
+        region: '',
+        county: '',
         architect: '',
-        mainContractor: '',
-        engEstimate: '',
-        finalAccount: '',
-        employeeAssigned: [],
+        mepContractSum: '',
+        electrical: '',
+        mechanical: '',
+        projectLead: '',
         stage: '',
-        status: 'In Progress'
+        status: 'Active'
     });
 
     const PROJECT_TYPE_OPTIONS = [
@@ -37,6 +36,28 @@ const ProjectManager = () => {
         'Research'
     ];
 
+    const REGION_OPTIONS = [
+        'Coast',
+        'Western',
+        'Eastern',
+        'North Eastern',
+        'Rift Valley',
+        'Central',
+        'Nyanza',
+        'Nairobi'
+    ];
+
+    const COUNTIES_BY_REGION = {
+        'Coast': ['Mombasa', 'Kwale', 'Kilifi', 'Tana River', 'Lamu', 'Taita Taveta'],
+        'Western': ['Kakamega', 'Vihiga', 'Bungoma', 'Busia'],
+        'Eastern': ['Machakos', 'Kitui', 'Makueni', 'Meru', 'Embu', 'Tharaka Nithi', 'Isiolo'],
+        'North Eastern': ['Garissa', 'Wajir', 'Mandera'],
+        'Rift Valley': ['Nakuru', 'Uasin Gishu', 'Narok', 'Kajiado', 'Baringo', 'Laikipia', 'Kericho', 'Bomet', 'Nandi', 'Elgeyo Marakwet', 'West Pokot', 'Samburu', 'Trans Nzoia', 'Turkana'],
+        'Central': ['Kiambu', 'Murang\'a', 'Nyeri', 'Kirinyaga', 'Nyandarua'],
+        'Nyanza': ['Kisumu', 'Siaya', 'Homa Bay', 'Migori', 'Kisii', 'Nyamira'],
+        'Nairobi': ['Nairobi']
+    };
+
     const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || '');
 
     const fetchProjects = async () => {
@@ -50,18 +71,18 @@ const ProjectManager = () => {
         }
     };
 
-    const fetchEmployees = async () => {
+    const fetchUsers = async () => {
         try {
             const res = await api.get('/users');
-            setEmployees(res.data);
+            setUsers(res.data);
         } catch (err) {
-            console.error("Error fetching employees", err);
+            console.error("Error fetching users", err);
         }
     };
 
     useEffect(() => {
         fetchProjects();
-        fetchEmployees();
+        fetchUsers();
     }, []);
 
     useEffect(() => {
@@ -71,23 +92,22 @@ const ProjectManager = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await api.post('/projects', formData);
-            const newProject = response.data;
+            await api.post('/projects', formData);
             setFormData({
                 projectNumber: '',
                 projectName: '',
                 projectType: '',
-                location: '',
+                region: '',
+                county: '',
                 architect: '',
-                mainContractor: '',
-                engEstimate: '',
-                finalAccount: '',
-                employeeAssigned: [],
+                mepContractSum: '',
+                electrical: '',
+                mechanical: '',
+                projectLead: '',
                 stage: '',
-                status: 'In Progress'
+                status: 'Active'
             });
             fetchProjects();
-            setNewlyCreatedProject(newProject);
         } catch (err) {
             alert(err.response?.data?.message || "Error creating project");
         }
@@ -114,25 +134,6 @@ const ProjectManager = () => {
         }
     };
 
-    const getEmployeeNames = (empAssignment) => {
-        if (!empAssignment || (Array.isArray(empAssignment) && empAssignment.length === 0)) return '-';
-        
-        // Handle array of IDs
-        if (Array.isArray(empAssignment)) {
-            const names = empAssignment.map(empId => {
-                if (typeof empId === 'object') return empId.name;
-                const found = employees.find(e => e._id === empId);
-                return found ? found.name : 'Unknown';
-            });
-            return names.join(', ');
-        }
-        
-        // Handle single assignment (for backwards compatibility)
-        if (typeof empAssignment === 'object') return empAssignment.name;
-        const found = employees.find(e => e._id === empAssignment);
-        return found ? found.name : '-';
-    };
-
     const formatCurrency = (value) => {
         if (!value) return '-';
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'KSH' }).format(value);
@@ -143,7 +144,7 @@ const ProjectManager = () => {
     };
 
     // Filter projects based on status
-    const filteredProjects = statusFilter 
+    const filteredProjects = statusFilter && statusFilter !== 'all'
         ? projects.filter(p => {
             if (statusFilter === 'overdue') {
                 // Overdue: not completed and past end date
@@ -164,7 +165,13 @@ const ProjectManager = () => {
             </header>
 
             {/* Active Filter Banner */}
-            {statusFilter && (
+            {statusFilter === 'all' && (
+                <div className="filter-banner">
+                    <span>Showing projects: <strong>All Projects</strong></span>
+                    <button onClick={clearStatusFilter} className="btn-clear-filter">Clear Filter</button>
+                </div>
+            )}
+            {statusFilter && statusFilter !== 'all' && (
                 <div className="filter-banner">
                     <span>Showing projects: <strong>{statusFilter === 'overdue' ? 'Overdue Projects' : statusFilter}</strong></span>
                     <button onClick={clearStatusFilter} className="btn-clear-filter">Show All</button>
@@ -198,112 +205,99 @@ const ProjectManager = () => {
                     </select>
 
 
-                    <input 
-                        placeholder="Location" 
-                        value={formData.location}
-                        onChange={(e) => setFormData({...formData, location: e.target.value})}
-                    />
+                    <select 
+                        value={formData.region}
+                        onChange={(e) => setFormData({...formData, region: e.target.value, county: ''})}
+                    >
+                        <option value="">Region</option>
+                        {REGION_OPTIONS.map(region => (
+                            <option key={region} value={region}>{region}</option>
+                        ))}
+                    </select>
+                    <select 
+                        value={formData.county}
+                        onChange={(e) => setFormData({...formData, county: e.target.value})}
+                        disabled={!formData.region}
+                    >
+                        <option value="">County</option>
+                        {formData.region && COUNTIES_BY_REGION[formData.region]?.map(county => (
+                            <option key={county} value={county}>{county}</option>
+                        ))}
+                    </select>
+
                     <input 
                         placeholder="Architect" 
                         value={formData.architect}
                         onChange={(e) => setFormData({...formData, architect: e.target.value})}
                     />
                     <input 
-                        placeholder="Main Contractor" 
-                        value={formData.mainContractor}
-                        onChange={(e) => setFormData({...formData, mainContractor: e.target.value})}
-                    />
-                    <input 
                         type="number"
-                        placeholder="ENG Estimate (Ksh)" 
-                        value={formData.engEstimate}
-                        onChange={(e) => setFormData({...formData, engEstimate: e.target.value})}
+                        placeholder="MEP Contract Sum (Ksh)" 
+                        value={formData.mepContractSum}
+                        onChange={(e) => setFormData({...formData, mepContractSum: e.target.value})}
                     />
-                    <input 
-                        type="number"
-                        placeholder="Final Account (Ksh)" 
-                        value={formData.finalAccount}
-                        onChange={(e) => setFormData({...formData, finalAccount: e.target.value})}
-                    />
-                    
-                    <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                        <label>Assign Engineers</label>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', maxHeight: '150px', overflowY: 'auto', border: '1px solid #ddd', padding: '10px' }}>
-                            {employees.map(emp => (
-                                <label key={emp._id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.employeeAssigned.includes(emp._id)}
-                                        onChange={(e) => {
-                                            if (e.target.checked) {
-                                                setFormData({
-                                                    ...formData,
-                                                    employeeAssigned: [...formData.employeeAssigned, emp._id]
-                                                });
-                                            } else {
-                                                setFormData({
-                                                    ...formData,
-                                                    employeeAssigned: formData.employeeAssigned.filter(id => id !== emp._id)
-                                                });
-                                            }
-                                        }}
-                                    />
-                                    {emp.name}
-                                </label>
-                            ))}
-                        </div>
-                    </div>
+                    <select 
+                        value={formData.electrical}
+                        onChange={(e) => setFormData({...formData, electrical: e.target.value})}
+                    >
+                        <option value="">Assign Electrical</option>
+                        {users.filter(user => user.engineerType === 'Electrical').map(user => (
+                            <option key={user._id} value={user._id}>{user.name}</option>
+                        ))}
+                    </select>
+                    <select 
+                        value={formData.mechanical}
+                        onChange={(e) => setFormData({...formData, mechanical: e.target.value})}
+                    >
+                        <option value="">Assign Mechanical</option>
+                        {users.filter(user => user.engineerType === 'Mechanical').map(user => (
+                            <option key={user._id} value={user._id}>{user.name}</option>
+                        ))}
+                    </select>
+                    <select 
+                        value={formData.projectLead}
+                        onChange={(e) => setFormData({...formData, projectLead: e.target.value})}
+                    >
+                        <option value="">Select Project Lead</option>
+                        {users.map(user => (
+                            <option key={user._id} value={user._id}>{user.name}</option>
+                        ))}
+                    </select>
 
                     <select 
                         value={formData.stage}
                         onChange={(e) => setFormData({...formData, stage: e.target.value})}
                     >
                         <option value="">Select Stage</option>
-                        <option value="Tendering">Tendering</option>
-                        <option value="Procurement">Procurement</option>
                         <option value="Pre-Design">Pre-Design</option>
                         <option value="Design">Design</option>
-                        <option value="Construction & Monitoring">Construction & Monitoring</option>
-                        <option value="Commissioning">Commissioning</option>
+                        <option value="Tendering">Tendering</option>
+                        <option value="Construction & Supervision">Construction & Supervision</option>
+                        <option value="Snugging, Testing & Commissioning">Snugging, Testing & Commissioning</option>
                         <option value="Handover">Handover</option>
+                        <option value="Other(specify)">Other(specify)</option>
+                    </select>
+                    <select 
+                        value={formData.status}
+                        onChange={(e) => setFormData({...formData, status: e.target.value})}
+                    >
+                        <option value="">Select Status</option>
+                        <option value="Active">Active</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Stalled">Stalled</option>
                     </select>
                     <button type="submit" className="btn-success">Add Project</button>
                 </form>
             </section>
 
-            {/* Success Message with Add Details Button */}
-            {newlyCreatedProject && (
-                <div className="success-banner">
-                    <div className="success-content">
-                        <span className="success-icon">✓</span>
-                        <div className="success-text">
-                            <strong>Project "{newlyCreatedProject.projectName}" created successfully!</strong>
-                            <p>Would you like to add project details now?</p>
-                        </div>
-                        <div className="success-actions">
-                            <button 
-                                className="btn-action btn-details"
-                                onClick={() => navigate(`/project-details/${newlyCreatedProject._id}`)}
-                            >
-                                Add Details
-                            </button>
-                            <button 
-                                className="btn-action btn-secondary"
-                                onClick={() => setNewlyCreatedProject(null)}
-                            >
-                                Later
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+
 
             <hr />
 
             {/* Existing Projects Table */}
             <section className="table-section">
                 <h3>
-                    Active Project Directory 
+                    Project Directory 
                     {statusFilter && <span className="filter-indicator"> ({filteredProjects.length} {statusFilter})</span>}
                 </h3>
                 {loading ? <p>Loading projects...</p> : (
@@ -314,12 +308,13 @@ const ProjectManager = () => {
                                     <th>Project #</th>
                                     <th>Project Name</th>
                                     <th>Project Type</th>
-                                    <th>Location</th>
+                                    <th>Region</th>
+                                    <th>County</th>
                                     <th>Architect</th>
-                                    <th>Main Contractor</th>
-                                    <th>ENG Estimate</th>
-                                    <th>Final Account</th>
-                                    <th>Engineers</th>
+                                    <th>MEP Contract Sum</th>
+                                    <th>Electrical</th>
+                                    <th>Mechanical</th>
+                                    <th>Project Lead</th>
                                     <th>Stage</th>
                                     <th>Status</th>
                                     <th>Actions</th>
@@ -328,15 +323,16 @@ const ProjectManager = () => {
                             <tbody>
                                 {filteredProjects.map(project => (
                                     <tr key={project._id}>
-                                        <td><strong><Link to={`/project-details/${project._id}`} className="project-link">{project.projectNumber}</Link></strong></td>
-                                        <td><Link to={`/project-details/${project._id}`} className="project-link">{project.projectName}</Link></td>
+                                        <td><strong>{project.projectNumber}</strong></td>
+                                        <td>{project.projectName}</td>
                                         <td>{project.projectType || '-'}</td>
-                                        <td>{project.location || '-'}</td>
-                                        <td>{project.architect}</td>
-                                        <td>{project.mainContractor || '-'}</td>
-                                        <td>{formatCurrency(project.engEstimate)}</td>
-                                        <td>{formatCurrency(project.finalAccount)}</td>
-                                        <td>{getEmployeeNames(project.employeeAssigned)}</td>
+                                        <td>{project.region || '-'}</td>
+                                        <td>{project.county || '-'}</td>
+                                        <td>{project.architect || '-'}</td>
+                                        <td>{formatCurrency(project.mepContractSum)}</td>
+                                        <td>{project.electrical?.name || '-'}</td>
+                                        <td>{project.mechanical?.name || '-'}</td>
+                                        <td>{project.projectLead?.name || '-'}</td>
                                         <td>{project.stage || '-'}</td>
                                         <td>
                                             <select 
@@ -345,17 +341,12 @@ const ProjectManager = () => {
                                                 onChange={(e) => handleStatusChange(project._id, e.target.value)}
                                             >
                                                 <option value="Active">Active</option>
-                                                <option value="Pending">Pending</option>
-                                                <option value="In Progress">In Progress</option>
                                                 <option value="Completed">Completed</option>
-                                                <option value="On Hold">On Hold</option>
+                                                <option value="Stalled">Stalled</option>
                                             </select>
                                         </td>
                                         <td className="actions-cell">
                                             <div className="actions-buttons">
-                                                <Link to={`/project-details/${project._id}`} className="btn-action btn-details">
-                                                    Details
-                                                </Link>
                                                 <Link to={`/update-project/${project._id}`} className="btn-action btn-edit">
                                                     Edit
                                                 </Link>

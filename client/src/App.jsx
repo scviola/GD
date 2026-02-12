@@ -14,7 +14,9 @@ import UpdateProject from './pages/UpdateProject';
 import Home from './pages/Home';
 import Unauthorized from './pages/Unauthorized';
 import Notes from './pages/Notes';
-import ProjectDetails from './pages/ProjectDetails';
+import WeeklySubmissionReport from './pages/WeeklySubmissionReport';
+import MyProjects from './pages/MyProjects';
+
 
 // Layout Components
 import Navbar from './components/Navbar';
@@ -38,6 +40,7 @@ const App = () => {
               {/* Staff & Admin Shared Access (Logging Tasks) */}
               <Route element={<ProtectedRoute allowedRoles={['staff', 'admin']} />}>
                 <Route path="/employee-summaries" element={<EmployeeSummaries />} />
+                <Route path="/my-projects" element={<MyProjects />} />
                 <Route path="/task-log" element={<TaskLog />} />
                 <Route path="/notes" element={<Notes />} />
               </Route>
@@ -49,7 +52,7 @@ const App = () => {
                 <Route path="/project-manager" element={<ProjectManager />} />
                 <Route path="/admin/projects" element={<ProjectManager />} />
                 <Route path="/update-project/:id" element={<UpdateProject />} />
-                <Route path="/project-details/:projectId" element={<ProjectDetails />} />
+                <Route path="/admin/weekly-report" element={<WeeklySubmissionReport />} />
               </Route>
 
               {/* Root Redirect */}

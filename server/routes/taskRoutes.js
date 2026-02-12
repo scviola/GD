@@ -9,7 +9,8 @@ const {
     getTasksByProject,
     getTaskById,
     updateTask,
-    deleteTask
+    deleteTask,
+    getMyHoursByProject
 } = require('../controllers/projectTaskController');
 
 // Employee routes
@@ -17,6 +18,7 @@ router.post('/tasks', protect, createTask);
 router.get('/tasks/my', protect, getMyTasks);
 router.get('/tasks/my-logs', protect, getMyLogs);
 router.get('/tasks/logged-projects', protect, getLoggedProjectsByDate);
+router.get('/tasks/my-hours-by-project', protect, getMyHoursByProject);
 
 // Admin/Manager routes
 router.get('/tasks/project/:projectId', protect, restrictTo("admin"), getTasksByProject);

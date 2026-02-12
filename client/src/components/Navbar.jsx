@@ -33,9 +33,15 @@ const Navbar = () => {
                                         <MoveRight size={20}/>
                                         </Link>
                                     ) : (
-                                        <Link to="/task-log"style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <Redo size={20}/>
-                                            Log Task</Link>
+                                        <>
+                                            <Link to="/task-log"style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <Redo size={20}/>
+                                                Log Task
+                                            </Link>
+                                            <Link to="/my-projects" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                My Projects
+                                            </Link>
+                                        </>
                                     )}
                                 </>
                             ) : isTaskLog ? (
@@ -65,13 +71,33 @@ const Navbar = () => {
                                         </Link>
                                     )}
                                 </>
+                            ) : location.pathname === '/admin/weekly-report' ? (
+                                <>
+                                    <Link to="/admin" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        Back to Admin Dashboard
+                                        <MoveRight size={20}/>
+                                    </Link>
+                                </>
+                            ) : location.pathname === '/my-projects' ? (
+                                <>
+                                    <Link to="/employee-summaries" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <Undo size={20} />
+                                        Back to Summaries
+                                    </Link>
+                                </>
                             ) : null}
                             
                             {user.role === 'admin' && (
                                 <>
                   
-                                    {/* Show Projects when NOT on Project Manager, Task Log, Employee Summaries, or Notes page */}
-                                    {location.pathname !== '/project-manager' && location.pathname !== '/task-log' && location.pathname !== '/employee-summaries' && location.pathname !== '/notes' && (
+                                    {/* Show Weekly Submission Report link when on Admin Dashboard */}
+                                    {location.pathname === '/admin' && (
+                                        <Link to="/admin/weekly-report" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            Weekly Submission Report
+                                        </Link>
+                                    )}
+                                    {/* Show Projects when NOT on Project Manager, Task Log, Employee Summaries, Notes, or Weekly Report page */}
+                                    {location.pathname !== '/project-manager' && location.pathname !== '/task-log' && location.pathname !== '/employee-summaries' && location.pathname !== '/notes' && location.pathname !== '/admin/weekly-report' && (
                                         <Link to="/project-manager"> Manage Projects</Link>
                                     )}
                                     {/* Show Notes link when on Admin Dashboard */}
@@ -80,6 +106,7 @@ const Navbar = () => {
                                             Forum Notes
                                         </Link>
                                     )}
+
                                     {/* Show Master Schedule when on Project Manager page */}
                                     {location.pathname === '/project-manager' && (
                                         <Link to="/admin">Master Schedule Analytics</Link>
