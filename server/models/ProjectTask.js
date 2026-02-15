@@ -23,24 +23,11 @@ const projectTaskSchema = new mongoose.Schema(
                 'Design',
                 'Tendering',
                 'Construction & Supervision',
-                'Snugging, Testing & Commissioning',
+                'Snagging, Testing & Commissioning',
                 "Handover",
                 'Other(specify)'
                 ],
                 required: true
-        },
-        taskCategory: {
-            type: String,
-            enum: [
-                'Concept',
-                'Design',
-                'Tender Documentation',
-                'Construction',
-                'Snugging',
-                'Testing & Commissioning',
-                'Handover'
-            ],
-            required: true
         },
         specificTask: {
             type: String,

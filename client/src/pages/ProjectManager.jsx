@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
+import { useAuth } from '../context/useAuth';
 
 const ProjectManager = () => {
     const [projects, setProjects] = useState([]);
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchParams] = useSearchParams();
+    const { user } = useAuth();
+    const isAdmin = user?.role === 'admin';
     
     const [formData, setFormData] = useState({
         projectNumber: '',
@@ -15,7 +18,7 @@ const ProjectManager = () => {
         region: '',
         county: '',
         architect: '',
-        mepContractSum: '',
+        allocatedTime: '',
         electrical: '',
         mechanical: '',
         projectLead: '',
@@ -100,7 +103,7 @@ const ProjectManager = () => {
                 region: '',
                 county: '',
                 architect: '',
-                mepContractSum: '',
+                allocatedTime: '',
                 electrical: '',
                 mechanical: '',
                 projectLead: '',
@@ -132,11 +135,6 @@ const ProjectManager = () => {
             console.error("Error updating status", err);
             alert(err.response?.data?.message || "Error updating status.");
         }
-    };
-
-    const formatCurrency = (value) => {
-        if (!value) return '-';
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'KSH' }).format(value);
     };
 
     const clearStatusFilter = () => {
@@ -230,12 +228,14 @@ const ProjectManager = () => {
                         value={formData.architect}
                         onChange={(e) => setFormData({...formData, architect: e.target.value})}
                     />
-                    <input 
-                        type="number"
-                        placeholder="MEP Contract Sum (Ksh)" 
-                        value={formData.mepContractSum}
-                        onChange={(e) => setFormData({...formData, mepContractSum: e.target.value})}
-                    />
+                    {isAdmin && (
+                        <input 
+                            type="number"
+                            placeholder="Allocated Time (Hours)" 
+                            value={formData.allocatedTime}
+                            onChange={(e) => setFormData({...formData, allocatedTime: e.target.value})}
+                        />
+                    )}
                     <select 
                         value={formData.electrical}
                         onChange={(e) => setFormData({...formData, electrical: e.target.value})}
@@ -273,7 +273,7 @@ const ProjectManager = () => {
                         <option value="Design">Design</option>
                         <option value="Tendering">Tendering</option>
                         <option value="Construction & Supervision">Construction & Supervision</option>
-                        <option value="Snugging, Testing & Commissioning">Snugging, Testing & Commissioning</option>
+                        <option value="Snagging, Testing & Commissioning">Snagging, Testing & Commissioning</option>
                         <option value="Handover">Handover</option>
                         <option value="Other(specify)">Other(specify)</option>
                     </select>
@@ -311,7 +311,7 @@ const ProjectManager = () => {
                                     <th>Region</th>
                                     <th>County</th>
                                     <th>Architect</th>
-                                    <th>MEP Contract Sum</th>
+                                    <th>Allocated Time</th>
                                     <th>Electrical</th>
                                     <th>Mechanical</th>
                                     <th>Project Lead</th>
@@ -329,7 +329,7 @@ const ProjectManager = () => {
                                         <td>{project.region || '-'}</td>
                                         <td>{project.county || '-'}</td>
                                         <td>{project.architect || '-'}</td>
-                                        <td>{formatCurrency(project.mepContractSum)}</td>
+                                        <td>{isAdmin ? (project.allocatedTime ? `${project.allocatedTime} hrs` : '-') : '-'}</td>
                                         <td>{project.electrical?.name || '-'}</td>
                                         <td>{project.mechanical?.name || '-'}</td>
                                         <td>{project.projectLead?.name || '-'}</td>

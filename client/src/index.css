@@ -44,6 +44,13 @@ body {
   color: #666;
 }
 
+/* Admin Dashboard */
+.admin-dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
 /* Dashboard Header */
 .dashboard-header {
   display: flex;
@@ -360,7 +367,6 @@ body {
 /* Filters Section */
 .filters-section {
   margin-bottom: 24px;
-  margin-left: 70px;
 }
 
 .filters-section h3 {
@@ -2974,6 +2980,30 @@ body {
   
   .project-details-container .form-select {
     max-width: 100%;
+  }
+}
+
+/* Responsive form inputs */
+@media (max-width: 576px) {
+  .horizontal-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .horizontal-form input,
+  .horizontal-form select {
+    min-width: 100%;
+    width: 100%;
+  }
+  
+  .filter-select {
+    min-width: 100%;
+    flex: 1 1 100%;
+  }
+  
+  .filters-row {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 

@@ -186,9 +186,6 @@ const MyProjects = () => {
                                         </td>
                                         <td className="actions-cell">
                                             <div className="actions-buttons">
-                                                <Link to={`/project-details/${project._id}`} className="btn-action btn-details">
-                                                    Details
-                                                </Link>
                                                 <button 
                                                     onClick={() => openEditModal(project)}
                                                     className="btn-action btn-edit"
@@ -248,12 +245,12 @@ const MyProjects = () => {
                                 >
                                     <option value="">Select Stage...</option>
                                     <option value="Tendering">Tendering</option>
-                                    <option value="Procurement">Procurement</option>
                                     <option value="Pre-Design">Pre-Design</option>
                                     <option value="Design">Design</option>
-                                    <option value="Construction & Monitoring">Construction & Monitoring</option>
-                                    <option value="Commissioning">Commissioning</option>
+                                    <option value="Construction & Supervision">Construction & Supervision</option>
+                                    <option value="Snagging, Testing & Commissioning">Snagging, Testing & Commissioning</option>
                                     <option value="Handover">Handover</option>
+                                    <option value="Other(specify)">Other(specify)</option>
                                 </select>
                             </div>
                             <div className="form-group">
@@ -266,10 +263,8 @@ const MyProjects = () => {
                                 >
                                     <option value="">Select Status...</option>
                                     <option value="Active">Active</option>
-                                    <option value="Pending">Pending</option>
-                                    <option value="In Progress">In Progress</option>
                                     <option value="Completed">Completed</option>
-                                    <option value="On Hold">On Hold</option>
+                                    <option value="Stalled">Stalled</option>
                                 </select>
                             </div>
                         </div>

@@ -12,7 +12,6 @@ const createTask = async (req, res) => {
             projectName,
             workDate,
             stage,
-            taskCategory,
             specificTask,
             projectHours,
             leavesOffice,
@@ -36,7 +35,6 @@ const createTask = async (req, res) => {
         if (existingTask) {
             // Update existing task instead of creating new one
             existingTask.stage = stage;
-            existingTask.taskCategory = taskCategory;
             existingTask.specificTask = specificTask;
             existingTask.projectHours = projectHours;
             existingTask.leavesOffice = leavesOffice;
@@ -56,7 +54,6 @@ const createTask = async (req, res) => {
             employee: req.user.id,
             workDate,
             stage,
-            taskCategory,
             specificTask,
             projectHours,
             leavesOffice,
@@ -76,7 +73,6 @@ const createTask = async (req, res) => {
                     projectName,
                     workDate,
                     stage,
-                    taskCategory,
                     specificTask,
                     projectHours,
                     leavesOffice,
@@ -97,7 +93,6 @@ const createTask = async (req, res) => {
                 
                 if (existingTask) {
                     existingTask.stage = stage;
-                    existingTask.taskCategory = taskCategory;
                     existingTask.specificTask = specificTask;
                     existingTask.projectHours = projectHours;
                     existingTask.leavesOffice = leavesOffice;

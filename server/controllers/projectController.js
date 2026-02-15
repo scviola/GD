@@ -15,7 +15,7 @@ const createProject = async (req, res) => {
                 region,
                 county,
                 architect, 
-                mepContractSum,
+                allocatedTime,
                 electrical,
                 mechanical,
                 projectLead,
@@ -28,7 +28,7 @@ const createProject = async (req, res) => {
             }
             
             // Type conversion for numeric fields
-            const mepContractSumNum = mepContractSum ? Number(mepContractSum) : 0;
+            const allocatedTimeNum = allocatedTime ? Number(allocatedTime) : 0;
             
             const newProject = await Project.create({ 
                 projectNumber, 
@@ -37,7 +37,7 @@ const createProject = async (req, res) => {
                 region: region || '',
                 county: county || '',
                 architect, 
-                mepContractSum: mepContractSumNum,
+                allocatedTime: allocatedTimeNum,
                 electrical: electrical || null,
                 mechanical: mechanical || null,
                 projectLead: projectLead || null,
@@ -125,7 +125,7 @@ const updateProject = async (req, res) => {
         // Update all fields from request body
         const allowedFields = [
             'projectNumber', 'projectName', 'projectType', 'region', 'county',
-            'architect', 'mepContractSum', 'electrical', 'mechanical',
+            'architect', 'allocatedTime', 'electrical', 'mechanical',
             'projectLead', 'stage', 'status'
         ];
         

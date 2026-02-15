@@ -54,6 +54,14 @@ const AdminDashboard = () => {
     year: new Date().getFullYear().toString()
   });
 
+  const [projectTableFilters, setProjectTableFilters] = useState({
+    engineer: '',
+    projectName: '',
+    projectType: '',
+    stage: '',
+    status: ''
+  });
+
   // Generate date range options
   const getDateRange = useCallback(() => {
     let startDate = '';
@@ -198,6 +206,20 @@ const AdminDashboard = () => {
     setFilters(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleProjectTableFilterChange = (field, value) => {
+    setProjectTableFilters(prev => ({ ...prev, [field]: value }));
+  };
+
+  const clearProjectTableFilters = () => {
+    setProjectTableFilters({
+      engineer: '',
+      projectName: '',
+      projectType: '',
+      stage: '',
+      status: ''
+    });
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -252,6 +274,106 @@ const AdminDashboard = () => {
   };
 
   const hoursData = getAggregatedHours();
+
+  // Get unique values for filter dropdowns
+  const getUniqueEngineers = () => {
+    const engineers = new Set();
+    analytics.employeeProjectProgress?.forEach(item => {
+      if (item.engineer) engineers.add(item.engineer);
+    });
+    return Array.from(engineers).sort();
+  };
+
+  const getUniqueProjectNames = () => {
+    const projects = new Set();
+    analytics.employeeProjectProgress?.forEach(item => {
+      if (item.projectName) projects.add(item.projectName);
+    });
+    return Array.from(projects).sort();
+  };
+
+  const getUniqueStages = () => {
+    const stages = new Set();
+    analytics.employeeProjectProgress?.forEach(item => {
+      if (item.stage) stages.add(item.stage);
+    });
+    return Array.from(stages).sort();
+  };
+
+  const getUniqueProjectTypes = () => {
+    const types = new Set();
+    analytics.employeeProjectProgress?.forEach(item => {
+      if (item.projectType) types.add(item.projectType);
+    });
+    return Array.from(types).sort();
+  };
+
+  const getUniqueStatuses = () => {
+    const statuses = new Set();
+    analytics.employeeProjectProgress?.forEach(item => {
+      if (item.status) statuses.add(item.status);
+    });
+    return Array.from(statuses).sort();
+  };
+
+  // Filter employee project progress data
+  const getFilteredProjectProgress = () => {
+    let data = analytics.employeeProjectProgress || [];
+    
+    // Apply filters
+    if (projectTableFilters.engineer) {
+      data = data.filter(item => item.engineer === projectTableFilters.engineer);
+    }
+    if (projectTableFilters.projectName) {
+      data = data.filter(item => item.projectName === projectTableFilters.projectName);
+    }
+    if (projectTableFilters.projectType) {
+      data = data.filter(item => item.projectType === projectTableFilters.projectType);
+    }
+    if (projectTableFilters.stage) {
+      data = data.filter(item => item.stage === projectTableFilters.stage);
+    }
+    if (projectTableFilters.status) {
+      data = data.filter(item => item.status === projectTableFilters.status);
+    }
+    
+    // If filtered by project name, group and sum hours
+    if (projectTableFilters.projectName) {
+      const grouped = data.reduce((acc, item) => {
+        const key = item.projectName;
+        if (!acc[key]) {
+          acc[key] = {
+            projectName: item.projectName,
+            projectNumber: item.projectNumber,
+            projectType: item.projectType,
+            stage: item.stage,
+            status: item.status,
+            allocatedTime: item.allocatedTime,
+            travelHours: 0,
+            projectHours: 0,
+            totalManHours: 0,
+            totalMileage: 0,
+            engineers: new Set()
+          };
+        }
+        acc[key].travelHours += item.travelHours || 0;
+        acc[key].projectHours += item.projectHours || 0;
+        acc[key].totalManHours += item.totalManHours || 0;
+        acc[key].totalMileage += item.totalMileage || 0;
+        acc[key].engineers.add(item.engineer);
+        return acc;
+      }, {});
+      
+      return Object.values(grouped).map(item => ({
+        ...item,
+        engineer: Array.from(item.engineers).join(', ')
+      }));
+    }
+    
+    return data;
+  };
+
+  const filteredProjectProgress = getFilteredProjectProgress();
 
   return (
     <div className="admin-dashboard">
@@ -532,9 +654,81 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* Table 3: Employee Project Progress */}
+      {/* Table 3: Staff Project Progress */}
       <div className="table-section">
         <h3>Staff Project Progress</h3>
+        
+        {/* Table Filters */}
+        <div className="filters-row" style={{ marginBottom: '15px', gap: '8px', flexWrap: 'wrap' }}>
+          <select
+            value={projectTableFilters.engineer}
+            onChange={e => handleProjectTableFilterChange('engineer', e.target.value)}
+            className="filter-select"
+            style={{ minWidth: '120px' }}
+          >
+            <option value="">All Engineers</option>
+            {getUniqueEngineers().map(eng => (
+              <option key={eng} value={eng}>{eng}</option>
+            ))}
+          </select>
+
+          <select
+            value={projectTableFilters.projectName}
+            onChange={e => handleProjectTableFilterChange('projectName', e.target.value)}
+            className="filter-select"
+            style={{ minWidth: '150px' }}
+          >
+            <option value="">All Projects</option>
+            {getUniqueProjectNames().map(proj => (
+              <option key={proj} value={proj}>{proj}</option>
+            ))}
+          </select>
+
+          <select
+            value={projectTableFilters.projectType}
+            onChange={e => handleProjectTableFilterChange('projectType', e.target.value)}
+            className="filter-select"
+            style={{ minWidth: '130px' }}
+          >
+            <option value="">All Project Types</option>
+            {getUniqueProjectTypes().map(type => (
+              <option key={type} value={type}>{type}</option>
+            ))}
+          </select>
+
+          <select
+            value={projectTableFilters.stage}
+            onChange={e => handleProjectTableFilterChange('stage', e.target.value)}
+            className="filter-select"
+            style={{ minWidth: '120px' }}
+          >
+            <option value="">All Stages</option>
+            {getUniqueStages().map(stage => (
+              <option key={stage} value={stage}>{stage}</option>
+            ))}
+          </select>
+
+          <select
+            value={projectTableFilters.status}
+            onChange={e => handleProjectTableFilterChange('status', e.target.value)}
+            className="filter-select"
+            style={{ minWidth: '100px' }}
+          >
+            <option value="">All Statuses</option>
+            {getUniqueStatuses().map(stat => (
+              <option key={stat} value={stat}>{stat}</option>
+            ))}
+          </select>
+
+          <button 
+            onClick={clearProjectTableFilters}
+            className="btn-clear-filter"
+            style={{ padding: '8px 12px', whiteSpace: 'nowrap' }}
+          >
+            Clear Filters
+          </button>
+        </div>
+
         <div className="table-responsive">
           <table className="spreadsheet-table">
             <thead>
@@ -545,13 +739,17 @@ const AdminDashboard = () => {
                 <th>Project Type</th>
                 <th>Stage</th>
                 <th>Status</th>
+                <th>Allocated Time</th>
+                <th>Travel Hours</th>
+                <th>Project Hours</th>
                 <th>Total Man Hours</th>
+                <th>Remaining Time</th>
                 <th>Total Mileage (km)</th>
               </tr>
             </thead>
             <tbody>
-              {analytics.employeeProjectProgress && analytics.employeeProjectProgress.length > 0 ? (
-                analytics.employeeProjectProgress.map((item, index) => (
+              {filteredProjectProgress && filteredProjectProgress.length > 0 ? (
+                filteredProjectProgress.map((item, index) => (
                   <tr key={index}>
                     <td>{item.engineer}</td>
                     <td>{item.projectNumber}</td>
@@ -559,13 +757,17 @@ const AdminDashboard = () => {
                     <td>{item.projectType}</td>
                     <td>{item.stage}</td>
                     <td>{item.status}</td>
+                    <td>{item.allocatedTime ? `${item.allocatedTime} hrs` : '-'}</td>
+                    <td>{formatHours(item.travelHours)}</td>
+                    <td>{formatHours(item.projectHours)}</td>
                     <td>{formatHours(item.totalManHours)}</td>
+                    <td>{item.allocatedTime ? formatHours(item.allocatedTime - (item.totalManHours || 0)) : '-'}</td>
                     <td>{item.totalMileage ? `${Number(item.totalMileage).toFixed(1)} km` : '-'}</td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" className="no-results">No project progress data available</td>
+                  <td colSpan="12" className="no-results">No project progress data available</td>
                 </tr>
               )}
             </tbody>

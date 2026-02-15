@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
+import { useAuth } from '../context/useAuth';
 
 const UpdateProject = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { user } = useAuth();
+    const isAdmin = user?.role === 'admin';
     
     const [project, setProject] = useState(null);
     const [users, setUsers] = useState([]);
@@ -19,7 +22,7 @@ const UpdateProject = () => {
         region: '',
         county: '',
         architect: '',
-        mepContractSum: '',
+        allocatedTime: '',
         electrical: '',
         mechanical: '',
         projectLead: '',
@@ -83,7 +86,7 @@ const UpdateProject = () => {
                     region: projectData.region || '',
                     county: projectData.county || '',
                     architect: projectData.architect || '',
-                    mepContractSum: projectData.mepContractSum || '',
+                    allocatedTime: projectData.allocatedTime || '',
                     electrical: projectData.electrical?._id || projectData.electrical || '',
                     mechanical: projectData.mechanical?._id || projectData.mechanical || '',
                     projectLead: projectData.projectLead?._id || projectData.projectLead || '',
@@ -245,18 +248,20 @@ const UpdateProject = () => {
                         </div>
                     </div>
 
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>MEP Contract Sum (Ksh)</label>
-                            <input 
-                                type="number" 
-                                name="mepContractSum"
-                                value={formData.mepContractSum}
-                                onChange={handleChange}
-                                placeholder="0.00"
-                            />
+                    {isAdmin && (
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label>Allocated Time (Hours)</label>
+                                <input 
+                                    type="number" 
+                                    name="allocatedTime"
+                                    value={formData.allocatedTime}
+                                    onChange={handleChange}
+                                    placeholder="0"
+                                />
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     <div className="form-row">
                         <div className="form-group">

@@ -13,7 +13,6 @@ const TaskLog = () => {
     projectName: '',
     workDate: '',
     stage: '',
-    taskCategory: '',
     specificTask: '',
     projectHours: '',
     leavesOffice: false,
@@ -94,11 +93,6 @@ const TaskLog = () => {
   };
 
   const handleChange = (field, value) => {
-    // Clear specific task when task category changes
-    if (field === 'taskCategory') {
-      setFormData(prev => ({ ...prev, taskCategory: value, specificTask: '' }));
-      return;
-    }
     // Clear mileage/destination when transport mode changes
     if (field === 'transportMode') {
       setFormData(prev => ({
@@ -139,7 +133,6 @@ const TaskLog = () => {
         projectName: '',
         workDate: '',
         stage: '',
-        taskCategory: '',
         specificTask: '',
         projectHours: '',
         leavesOffice: false,
@@ -225,37 +218,19 @@ const TaskLog = () => {
           <option value="Design">Design</option>
           <option value="Tendering">Tendering</option>
           <option value="Construction & Supervision">Construction & Supervision</option>
-          <option value="Snugging, Testing & Commissioning">Snugging, Testing & Commissioning</option>
+          <option value="Snagging, Testing & Commissioning">Snagging, Testing & Commissioning</option>
           <option value="Handover">Handover</option>
           <option value="Other(specify)">Other(specify)</option>
         </select>
 
-        {/* Task Category */}
-        <label>Task Category *</label>
-        <select
-          required
-          value={formData.taskCategory}
-          onChange={(e) => handleChange('taskCategory', e.target.value)}
-        >
-          <option value="">Select Category...</option>
-          <option value="Concept">Concept</option>
-          <option value="Design">Design</option>
-          <option value="Tender Documentation">Tender Documentation</option>
-          <option value="Construction">Construction</option>
-          <option value="Snugging">Snugging</option>
-          <option value="Testing & Commissioning">Testing & Commissioning</option>
-          <option value="Handover">Handover</option>
-        </select>
-
         {/* Specific Task */}
-        <label>Specific Task *</label>
+        <label>Task *</label>
         <input
           type="text"
           required
           placeholder="Enter specific task..."
           value={formData.specificTask}
           onChange={(e) => handleChange('specificTask', e.target.value)}
-          disabled={!formData.taskCategory}
         />
 
         {/* Project Hours */}

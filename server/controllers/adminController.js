@@ -234,7 +234,9 @@ const getAnalytics = async (req, res) => {
                                     project: '$projectName'
                                 },
                                 totalManHours: { $sum: '$totalManHours' },
-                                totalMileage: { $sum: '$mileage' }
+                                totalMileage: { $sum: '$mileage' },
+                                travelHours: { $sum: '$travelHours' },
+                                projectHours: { $sum: '$projectHours' }
                             }
                         },
                         { $lookup: { from: 'users', localField: '_id.employee', foreignField: '_id', as: 'employee' } },
@@ -249,8 +251,11 @@ const getAnalytics = async (req, res) => {
                                 projectType: { $ifNull: ['$project.projectType', 'Unknown'] },
                                 stage: { $ifNull: ['$project.stage', 'Not Set'] },
                                 status: { $ifNull: ['$project.status', 'Unknown'] },
+                                allocatedTime: { $ifNull: ['$project.allocatedTime', 0] },
                                 totalManHours: 1,
-                                totalMileage: 1
+                                totalMileage: 1,
+                                travelHours: 1,
+                                projectHours: 1
                             }
                         },
                         { $sort: { engineer: 1, projectName: 1 } }

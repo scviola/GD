@@ -28,7 +28,7 @@ const projectSchema = new mongoose.Schema(
         architect: {
             type: String,
         },
-        mepContractSum: {
+        allocatedTime: {
             type: Number,
             default: 0
         },
@@ -54,7 +54,7 @@ const projectSchema = new mongoose.Schema(
                 'Design',
                 'Tendering',
                 'Construction & Supervision',
-                'Snugging, Testing & Commissioning',
+                'Snagging, Testing & Commissioning',
                 "Handover",
                 'Other(specify)'
                 ]

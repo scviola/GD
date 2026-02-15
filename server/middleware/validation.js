@@ -28,12 +28,12 @@ const createProjectValidation = [
         .trim()
         .optional()
         .isLength({ max: 200 }).withMessage('Architect name must be less than 200 characters'),
-    body('mepContractSum')
+    body('allocatedTime')
         .optional({ nullable: true, checkFalsy: true })
         .custom((value) => {
             if (value === '' || value === null || value === undefined) return true;
             return !isNaN(value) && !isNaN(parseFloat(value));
-        }).withMessage('MEP contract sum must be a number'),
+        }).withMessage('Allocated time must be a number'),
     body('electrical')
         .optional({ nullable: true, checkFalsy: true })
         .custom((value) => {
@@ -58,28 +58,35 @@ const createProjectValidation = [
     body('stage')
         .optional()
         .isIn([
-            'Pre-design', 'Design', 'Tendering', 
-            'Construction & Supervision', 'Snugging, Testing & Commissioning',
-            'Handover', 'Other(specify)'
+            'Pre-design',
+            'Design',
+            'Tendering',
+            'Construction & Supervision',
+            'Snagging, Testing & Commissioning',
+            'Handover',
+            'Other(specify)'
         ]).withMessage('Invalid stage'),
     body('status')
         .optional()
-        .isIn(['Active', 'Completed', 'Stalled'])
-        .withMessage('Invalid status')
+        .isIn(['Active', 'Completed', 'Stalled']).withMessage('Invalid status'),
 ];
 
 // Validation rules for project update
 const updateProjectValidation = [
     param('id')
-        .isMongoId().withMessage('Invalid project ID'),
+        .notEmpty().withMessage('Project ID is required')
+        .custom((value) => {
+            const mongoose = require('mongoose');
+            return mongoose.Types.ObjectId.isValid(value);
+        }).withMessage('Invalid project ID'),
     body('projectNumber')
-        .optional()
         .trim()
+        .optional()
         .notEmpty().withMessage('Project number cannot be empty')
         .isLength({ min: 2, max: 50 }).withMessage('Project number must be 2-50 characters'),
     body('projectName')
-        .optional()
         .trim()
+        .optional()
         .notEmpty().withMessage('Project name cannot be empty')
         .isLength({ max: 200 }).withMessage('Project name must be less than 200 characters'),
     body('projectType')
@@ -100,12 +107,12 @@ const updateProjectValidation = [
         .optional()
         .trim()
         .isLength({ max: 200 }).withMessage('Architect name must be less than 200 characters'),
-    body('mepContractSum')
+    body('allocatedTime')
         .optional({ nullable: true, checkFalsy: true })
         .custom((value) => {
             if (value === '' || value === null || value === undefined) return true;
             return !isNaN(value) && !isNaN(parseFloat(value));
-        }).withMessage('MEP contract sum must be a number'),
+        }).withMessage('Allocated time must be a number'),
     body('electrical')
         .optional({ nullable: true, checkFalsy: true })
         .custom((value) => {
@@ -130,26 +137,26 @@ const updateProjectValidation = [
     body('stage')
         .optional()
         .isIn([
-            'Pre-design', 'Design', 'Tendering', 
-            'Construction & Supervision', 'Snugging, Testing & Commissioning',
-            'Handover', 'Other(specify)'
+            'Pre-design',
+            'Design',
+            'Tendering',
+            'Construction & Supervision',
+            'Snagging, Testing & Commissioning',
+            'Handover',
+            'Other(specify)'
         ]).withMessage('Invalid stage'),
     body('status')
         .optional()
-        .isIn(['Active', 'Completed', 'Stalled'])
-        .withMessage('Invalid status')
+        .isIn(['Active', 'Completed', 'Stalled']).withMessage('Invalid status'),
 ];
 
-// Middleware to check validation results
+// Middleware to handle validation errors
 const validate = (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({
-            success: false,
-            errors: errors.array().map(err => ({
-                field: err.path,
-                message: err.msg
-            }))
+        return res.status(400).json({ 
+            message: 'Validation failed',
+            errors: errors.array() 
         });
     }
     next();

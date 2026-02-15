@@ -234,7 +234,7 @@ const EmployeeSummaries = () => {
         'Design': '#ef4444',
         'Tendering': '#3b82f6',
         'Construction & Supervision': '#8b5cf6',
-        'Snugging, Testing & Commissioning': '#ec4899',
+        'Snagging, Testing & Commissioning': '#ec4899',
         'Handover': '#06b6d4',
         'Other(specify)': '#10b981',
         'Not Set': '#888888'
