@@ -26,6 +26,9 @@ const ProjectManager = () => {
         status: 'Active'
     });
 
+    const [customProjectType, setCustomProjectType] = useState('');
+    const [customStage, setCustomStage] = useState('');
+
     const PROJECT_TYPE_OPTIONS = [
         'Personal Hse',
         'Hostel',
@@ -35,8 +38,11 @@ const ProjectManager = () => {
         'Industrial',
         'FitOut',
         'Renovation',
-        'School',
-        'Research'
+        'Education',
+        'Hospital',
+        'Commercial',
+        'Research',
+        'Other'
     ];
 
     const REGION_OPTIONS = [
@@ -94,8 +100,15 @@ const ProjectManager = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        // If projectType is 'Other', use customProjectType value
+        // If stage is 'Other(specify)', use customStage value
+        const projectData = {
+            ...formData,
+            projectType: formData.projectType === 'Other' ? customProjectType : formData.projectType,
+            stage: formData.stage === 'Other' ? customStage : formData.stage
+        };
         try {
-            await api.post('/projects', formData);
+            await api.post('/projects', projectData);
             setFormData({
                 projectNumber: '',
                 projectName: '',
@@ -110,6 +123,8 @@ const ProjectManager = () => {
                 stage: '',
                 status: 'Active'
             });
+            setCustomProjectType('');
+            setCustomStage('');
             fetchProjects();
         } catch (err) {
             alert(err.response?.data?.message || "Error creating project");
@@ -201,6 +216,13 @@ const ProjectManager = () => {
                             <option key={type} value={type}>{type}</option>
                         ))}
                     </select>
+                    {formData.projectType === 'Other' && (
+                        <input 
+                            placeholder="Specify project type" 
+                            value={customProjectType}
+                            onChange={(e) => setCustomProjectType(e.target.value)}
+                        />
+                    )}
 
 
                     <select 
@@ -275,8 +297,15 @@ const ProjectManager = () => {
                         <option value="Construction & Supervision">Construction & Supervision</option>
                         <option value="Snagging, Testing & Commissioning">Snagging, Testing & Commissioning</option>
                         <option value="Handover">Handover</option>
-                        <option value="Other(specify)">Other(specify)</option>
+                        <option value="Other">Other</option>
                     </select>
+                    {formData.stage === 'Other' && (
+                        <input 
+                            placeholder="Specify stage" 
+                            value={customStage}
+                            onChange={(e) => setCustomStage(e.target.value)}
+                        />
+                    )}
                     <select 
                         value={formData.status}
                         onChange={(e) => setFormData({...formData, status: e.target.value})}

@@ -6,41 +6,25 @@ const TaskLog = () => {
   const { user } = useContext(AuthContext);
   const [myProjects, setMyProjects] = useState([]);
   const [projectSearch, setProjectSearch] = useState('');
-  const [projectNumber, setProjectNumber] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     projectName: '',
     workDate: '',
     stage: '',
-    specificTask: '',
+    task: '',
     projectHours: '',
     leavesOffice: false,
-    transportMode: '',
-    travelHours: '',
-    mileage: '',
-    destination: ''
+    travelHours: ''
   });
 
-  // FETCH PROJECTS - Only show assigned projects
+  // FETCH ALL PROJECTS
   useEffect(() => {
     const fetchProjects = async () => {
       try {
         const res = await api.get('/projects');
         const projects = Array.isArray(res.data) ? res.data : [];
-        
-        // Filter to only show projects assigned to current employee
-        const userId = user?.id || user?._id;
-        if (userId) {
-          const assigned = projects.filter(p => {
-            // Check if user is assigned as electrical, mechanical, or project lead
-            const isElectrical = p.electrical?._id === userId || p.electrical === userId;
-            const isMechanical = p.mechanical?._id === userId || p.mechanical === userId;
-            const isProjectLead = p.projectLead?._id === userId || p.projectLead === userId;
-            return isElectrical || isMechanical || isProjectLead;
-          });
-          setMyProjects(assigned);
-        }
+        setMyProjects(projects);
       } catch (err) {
         console.error('Failed to load projects', err);
       }
@@ -49,10 +33,12 @@ const TaskLog = () => {
   }, [user]);
 
 
-  // Filter projects for dropdown (show all assigned projects)
-  const filteredProjects = myProjects.filter(p =>
-    `${p.projectNumber} ${p.projectName}`.toLowerCase().includes(projectSearch.toLowerCase())
-  );
+  // Filter and sort projects for dropdown (alphabetically)
+  const filteredProjects = myProjects
+    .filter(p =>
+      `${p.projectNumber} ${p.projectName}`.toLowerCase().includes(projectSearch.toLowerCase())
+    )
+    .sort((a, b) => a.projectName.localeCompare(b.projectName));
 
   // Auto-populate project name when project number is typed
   useEffect(() => {
@@ -63,7 +49,6 @@ const TaskLog = () => {
       );
       if (exactMatch) {
         setFormData(prev => ({ ...prev, projectName: exactMatch._id }));
-        setProjectNumber(exactMatch.projectNumber);
         return;
       }
     }
@@ -74,43 +59,29 @@ const TaskLog = () => {
     if (filteredProjects.length === 1 && projectSearch.trim()) {
       const project = filteredProjects[0];
       setFormData(prev => ({ ...prev, projectName: project._id }));
-      setProjectNumber(project.projectNumber);
       setProjectSearch('');
     }
   }, [projectSearch, filteredProjects]);
 
-  // Auto-populate project number when project name is selected
+  // Auto-populate project search when project name is selected
   const handleProjectNameChange = (e) => {
     const projectId = e.target.value;
     setFormData(prev => ({ ...prev, projectName: projectId }));
     
     const selectedProject = myProjects.find(p => p._id === projectId);
     if (selectedProject) {
-      setProjectNumber(selectedProject.projectNumber);
+      setProjectSearch(selectedProject.projectNumber);
     } else {
-      setProjectNumber('');
+      setProjectSearch('');
     }
   };
 
   const handleChange = (field, value) => {
-    // Clear mileage/destination when transport mode changes
-    if (field === 'transportMode') {
-      setFormData(prev => ({
-        ...prev,
-        transportMode: value,
-        mileage: value === 'Road' ? prev.mileage : '',
-        destination: value === 'Flight' ? prev.destination : ''
-      }));
-      return;
-    }
     if (field === 'leavesOffice' && value === false) {
       setFormData(prev => ({
         ...prev,
         leavesOffice: false,
-        transportMode: '',
-        travelHours: '',
-        mileage: '',
-        destination: ''
+        travelHours: ''
       }));
       return;
     }
@@ -133,15 +104,12 @@ const TaskLog = () => {
         projectName: '',
         workDate: '',
         stage: '',
-        specificTask: '',
+        task: '',
         projectHours: '',
         leavesOffice: false,
-        transportMode: '',
-        travelHours: '',
-        mileage: '',
-        destination: ''
+        travelHours: ''
       });
-      setProjectNumber('');
+      setProjectSearch('');
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to submit task');
     } finally {
@@ -155,32 +123,25 @@ const TaskLog = () => {
     >
       <h3>Daily Project Task Reporting</h3>
       <p className="info-text">
-        Only projects assigned to you are shown below.
-        {myProjects.length === 0 && (
-          <span className="warning-text">
-            {' '}You haven't been assigned any projects yet.
-          </span>
-        )}
+        Select a project by entering the project number or selecting from the dropdown.
       </p>
 
       <form onSubmit={handleSubmit} className="task-form">
-        {/* Project Number (read-only) */}
+        {/* Project Number - Editable/Searchable */}
         <label>Project Number</label>
         <input
           type="text"
-          placeholder="Select a project to auto-populate..."
-          value={projectNumber}
-          readOnly
-          style={{ backgroundColor: '#f5f5f5' }}
+          placeholder="Enter project number to search..."
+          value={projectSearch}
+          onChange={(e) => setProjectSearch(e.target.value)}
         />
 
-        {/* Project Dropdown - Only shows assigned projects */}
+        {/* Project Dropdown - Shows all projects */}
         <label>Project Name *</label>
         <select
           required
           value={formData.projectName}
           onChange={handleProjectNameChange}
-          disabled={myProjects.length === 0}
         >
           <option value="">Select Project...</option>
           {filteredProjects.map(project => (
@@ -192,7 +153,7 @@ const TaskLog = () => {
 
         {myProjects.length === 0 && (
           <p className="no-projects-message">
-            You have no assigned projects.
+            No projects available.
           </p>
         )}
 
@@ -223,15 +184,21 @@ const TaskLog = () => {
           <option value="Other(specify)">Other(specify)</option>
         </select>
 
-        {/* Specific Task */}
+        {/* Tasks */}
         <label>Task *</label>
-        <input
-          type="text"
+        <select
           required
-          placeholder="Enter specific task..."
-          value={formData.specificTask}
-          onChange={(e) => handleChange('specificTask', e.target.value)}
-        />
+          value={formData.task}
+          onChange={(e) => handleChange('task', e.target.value)}
+        >
+          <option value="">Select Task...</option>
+          <option value="Emails & Office work">Emails & Office work</option>
+          <option value="Design/BOD">Design/BOD</option>
+          <option value="Meeting(online/site)">Meeting(online/site)</option>
+          <option value="Documentation(BOQs, reports)">Documentation(BOQs, reports)</option>
+          <option value="Inspection">Inspection</option>
+          <option value="Snagging, Testing & Commissioning">Snagging, Testing & Commissioning</option>
+        </select>
 
         {/* Project Hours */}
         <label>Project Hours *</label>
@@ -258,18 +225,6 @@ const TaskLog = () => {
         {/* Conditional Travel Fields */}
         {formData.leavesOffice && (
           <>
-            <label>Means of Transport *</label>
-            <select
-              required
-              value={formData.transportMode}
-              onChange={(e) => handleChange('transportMode', e.target.value)}
-            >
-              <option value="">Select...</option>
-              <option value="Road">Road</option>
-              <option value="Flight">Flight</option>
-              <option value="Other">Other</option>
-            </select>
-
             <label>Travel Hours *</label>
             <input
               type="number"
@@ -280,34 +235,6 @@ const TaskLog = () => {
               value={formData.travelHours}
               onChange={(e) => handleChange('travelHours', e.target.value)}
             />
-
-            {/* Conditional Mileage/Destination Fields */}
-            {formData.transportMode === 'Road' && (
-              <>
-                <label>Mileage (km) *</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  required
-                  value={formData.mileage}
-                  onChange={(e) => handleChange('mileage', e.target.value)}
-                  placeholder="Enter distance in kilometers"
-                />
-              </>
-            )}
-
-            {formData.transportMode === 'Flight' && (
-              <>
-                <label>Destination *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.destination}
-                  onChange={(e) => handleChange('destination', e.target.value)}
-                  placeholder="Enter flight destination"
-                />
-              </>
-            )}
           </>
         )}
 
@@ -322,7 +249,7 @@ const TaskLog = () => {
           style={{ backgroundColor: '#f5f5f5' }}
         />
 
-        <button type="submit" disabled={submitting || myProjects.length === 0}>
+        <button type="submit" disabled={submitting}>
           {submitting ? 'Saving...' : 'Submit'}
         </button>
       </form>

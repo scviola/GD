@@ -55,15 +55,11 @@ const getMasterSchedule = async (req, res) => {
                     architect: '$project.architect',
                     stage: 1,
                     task: 1,
-                    description: 1,
                     manHours: 1,
                     travelHours: 1,
                     totalManHours: { $add: ['$manHours', '$travelHours'] },
                     status: 1,
-                    leavesOffice: 1,
-                    transportMode: 1,
-                    mileage: 1,
-                    destination: 1
+                    leavesOffice: 1
                 }
             },
             { $sort: { workDate: -1 } }
@@ -201,8 +197,7 @@ const getAnalytics = async (req, res) => {
                                 pendingTasks: { $sum: { $cond: [{ $ne: ['$status', 'Completed'] }, 1, 0] } },
                                 totalProjectHours: { $sum: '$manHours' },
                                 totalTravelHours: { $sum: '$travelHours' },
-                                totalManHours: { $sum: { $add: ['$manHours', '$travelHours'] } },
-                                totalMileage: { $sum: '$mileage' }
+                                totalManHours: { $sum: { $add: ['$manHours', '$travelHours'] } }
                             }
                         },
                         { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'employee' } },
@@ -214,7 +209,6 @@ const getAnalytics = async (req, res) => {
                                 completedTasks: 1,
                                 pendingTasks: 1,
                                 totalManHours: 1,
-                                totalMileage: 1,
                                 progressPercentage: {
                                     $multiply: [
                                         { $divide: ['$completedTasks', { $cond: [{ $eq: ['$totalTasks', 0] }, 1, '$totalTasks'] }] },
@@ -234,7 +228,6 @@ const getAnalytics = async (req, res) => {
                                     project: '$projectName'
                                 },
                                 totalManHours: { $sum: '$totalManHours' },
-                                totalMileage: { $sum: '$mileage' },
                                 travelHours: { $sum: '$travelHours' },
                                 projectHours: { $sum: '$projectHours' }
                             }
@@ -253,23 +246,19 @@ const getAnalytics = async (req, res) => {
                                 status: { $ifNull: ['$project.status', 'Unknown'] },
                                 allocatedTime: { $ifNull: ['$project.allocatedTime', 0] },
                                 totalManHours: 1,
-                                totalMileage: 1,
                                 travelHours: 1,
                                 projectHours: 1
                             }
                         },
                         { $sort: { engineer: 1, projectName: 1 } }
                     ],
-                    // Transportation Analytics
-                    transportByProject: [
+                    // Travel Analytics
+                    travelByProject: [
                         { $match: { leavesOffice: true } },
                         {
                             $group: {
                                 _id: '$projectName',
-                                totalMileage: { $sum: '$mileage' },
                                 totalTravelHours: { $sum: '$travelHours' },
-                                roadTrips: { $sum: { $cond: [{ $eq: ['$transportMode', 'Road'] }, 1, 0] } },
-                                flightTrips: { $sum: { $cond: [{ $eq: ['$transportMode', 'Flight'] }, 1, 0] } },
                                 tasks: { $sum: 1 }
                             }
                         },
@@ -279,20 +268,16 @@ const getAnalytics = async (req, res) => {
                             $project: {
                                 projectNumber: { $ifNull: ['$project.projectNumber', 'Unknown'] },
                                 projectName: { $ifNull: ['$project.projectName', 'Unknown'] },
-                                totalMileage: 1,
                                 totalTravelHours: 1,
-                                roadTrips: 1,
-                                flightTrips: 1,
                                 tasks: 1
                             }
                         }
                     ],
-                    mileageByEmployee: [
-                        { $match: { leavesOffice: true, transportMode: 'Road' } },
+                    travelByEmployee: [
+                        { $match: { leavesOffice: true } },
                         {
                             $group: {
                                 _id: '$employee',
-                                totalMileage: { $sum: '$mileage' },
                                 totalTravelHours: { $sum: '$travelHours' },
                                 trips: { $sum: 1 }
                             }
@@ -302,38 +287,21 @@ const getAnalytics = async (req, res) => {
                         {
                             $project: {
                                 name: { $ifNull: ['$employee.name', 'Unknown'] },
-                                totalMileage: 1,
                                 totalTravelHours: 1,
                                 trips: 1
                             }
                         }
                     ],
-                    flightDestinations: [
-                        { $match: { leavesOffice: true, transportMode: 'Flight' } },
-                        {
-                            $group: {
-                                _id: '$destination',
-                                tripCount: { $sum: 1 },
-                                totalTravelHours: { $sum: '$travelHours' }
-                            }
-                        },
-                        { $sort: { tripCount: -1 } }
-                    ],
-                    transportModeDist: [
-                        { $match: { leavesOffice: true } },
-                        { $group: { _id: '$transportMode', count: { $sum: 1 }, totalMileage: { $sum: '$mileage' }, totalTravelHours: { $sum: '$travelHours' } } }
-                    ],
-                    // Transport trend over time (for line chart)
-                    transportTrendByMonth: [
+                    travelTrendByMonth: [
                         { $match: { leavesOffice: true } },
                         {
                             $group: {
                                 _id: {
                                     year: { $year: '$workDate' },
                                     month: { $month: '$workDate' },
-                                    monthName: { $dateToString: { format: '%b %Y', date: '$workDate' } },
-                                    transportMode: '$transportMode'
+                                    monthName: { $dateToString: { format: '%b %Y', date: '$workDate' } }
                                 },
+                                totalTravelHours: { $sum: '$travelHours' },
                                 count: { $sum: 1 }
                             }
                         },
@@ -342,12 +310,11 @@ const getAnalytics = async (req, res) => {
                             $group: {
                                 _id: { year: '$_id.year', month: '$_id.month' },
                                 month: { $first: '$_id.monthName' },
-                                Road: { $sum: { $cond: [{ $eq: ['$_id.transportMode', 'Road'] }, '$count', 0] } },
-                                Flight: { $sum: { $cond: [{ $eq: ['$_id.transportMode', 'Flight'] }, '$count', 0] } }
+                                totalTravelHours: { $sum: '$totalTravelHours' }
                             }
                         },
                         { $sort: { _id: 1 } },
-                        { $project: { _id: 0, month: 1, Road: 1, Flight: 1 } }
+                        { $project: { _id: 0, month: 1, totalTravelHours: 1 } }
                     ]
                 }
             }

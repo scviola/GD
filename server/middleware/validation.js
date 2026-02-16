@@ -14,7 +14,7 @@ const createProjectValidation = [
         .optional()
         .isIn([
             'Personal Hse', 'Hostel', 'Hotel', 'Office Block', 'Residential Apartment',
-            'Industrial', 'FitOut', 'Renovation', 'School', 'Research'
+            'Industrial', 'FitOut', 'Renovation', 'Education', 'Hospital', 'Commercial', 'Research', 'Other'
         ]).withMessage('Invalid project type'),
     body('region')
         .optional()
@@ -64,7 +64,7 @@ const createProjectValidation = [
             'Construction & Supervision',
             'Snagging, Testing & Commissioning',
             'Handover',
-            'Other(specify)'
+            'Other'
         ]).withMessage('Invalid stage'),
     body('status')
         .optional()
@@ -93,7 +93,7 @@ const updateProjectValidation = [
         .optional()
         .isIn([
             'Personal Hse', 'Hostel', 'Hotel', 'Office Block', 'Residential Apartment',
-            'Industrial', 'FitOut', 'Renovation', 'School', 'Research'
+            'Industrial', 'FitOut', 'Renovation', 'Education', 'Hospital', 'Commercial', 'Research', 'Other'
         ]).withMessage('Invalid project type'),
     body('region')
         .optional()
@@ -143,7 +143,7 @@ const updateProjectValidation = [
             'Construction & Supervision',
             'Snagging, Testing & Commissioning',
             'Handover',
-            'Other(specify)'
+            'Other'
         ]).withMessage('Invalid stage'),
     body('status')
         .optional()

@@ -12,13 +12,10 @@ const createTask = async (req, res) => {
             projectName,
             workDate,
             stage,
-            specificTask,
+            task,
             projectHours,
             leavesOffice,
-            transportMode,
-            travelHours,
-            mileage,
-            destination
+            travelHours
         } = req.body;
 
         // Check if employee has already logged a task for this project on this date
@@ -35,13 +32,10 @@ const createTask = async (req, res) => {
         if (existingTask) {
             // Update existing task instead of creating new one
             existingTask.stage = stage;
-            existingTask.specificTask = specificTask;
+            existingTask.task = task;
             existingTask.projectHours = projectHours;
             existingTask.leavesOffice = leavesOffice;
-            existingTask.transportMode = leavesOffice ? transportMode : undefined;
             existingTask.travelHours = leavesOffice ? travelHours : 0;
-            existingTask.mileage = leavesOffice && transportMode === 'Road' ? mileage : undefined;
-            existingTask.destination = leavesOffice && transportMode === 'Flight' ? destination : undefined;
             existingTask.totalManHours = totalManHours;
             
             const updatedTask = await existingTask.save();
@@ -54,13 +48,10 @@ const createTask = async (req, res) => {
             employee: req.user.id,
             workDate,
             stage,
-            specificTask,
+            task,
             projectHours,
             leavesOffice,
-            transportMode: leavesOffice ? transportMode : undefined,
             travelHours: leavesOffice ? travelHours : 0,
-            mileage: leavesOffice && transportMode === 'Road' ? mileage : undefined,
-            destination: leavesOffice && transportMode === 'Flight' ? destination : undefined,
             totalManHours
         });
 
@@ -73,13 +64,10 @@ const createTask = async (req, res) => {
                     projectName,
                     workDate,
                     stage,
-                    specificTask,
+                    task,
                     projectHours,
                     leavesOffice,
-                    transportMode,
-                    travelHours,
-                    mileage,
-                    destination
+                    travelHours
                 } = req.body;
                 
                 const travel = leavesOffice ? Number(travelHours) || 0 : 0;
@@ -93,13 +81,10 @@ const createTask = async (req, res) => {
                 
                 if (existingTask) {
                     existingTask.stage = stage;
-                    existingTask.specificTask = specificTask;
+                    existingTask.task = task;
                     existingTask.projectHours = projectHours;
                     existingTask.leavesOffice = leavesOffice;
-                    existingTask.transportMode = leavesOffice ? transportMode : undefined;
                     existingTask.travelHours = leavesOffice ? travelHours : 0;
-                    existingTask.mileage = leavesOffice && transportMode === 'Road' ? mileage : undefined;
-                    existingTask.destination = leavesOffice && transportMode === 'Flight' ? destination : undefined;
                     existingTask.totalManHours = totalManHours;
                     
                     const updatedTask = await existingTask.save();

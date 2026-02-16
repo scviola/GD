@@ -29,8 +29,16 @@ const projectTaskSchema = new mongoose.Schema(
                 ],
                 required: true
         },
-        specificTask: {
+        task: {
             type: String,
+            enum: [
+                'Emails & Office work',
+                'Design/BOD',
+                'Meeting(online/site)',
+                'Documentation(BOQs, reports)',
+                'Inspection',
+                'Snagging, Testing & Commissioning'
+            ],
             required: true
         },
         projectHours: {
@@ -40,17 +48,6 @@ const projectTaskSchema = new mongoose.Schema(
         leavesOffice: {
             type: Boolean,
             default: false
-        },
-        transportMode: {
-            type: String,
-            enum: ['Road', 'Flight', 'Other']
-        },
-        mileage: {
-            type: Number,
-            default: 0
-        },
-        destination: {
-            type: String
         },
         travelHours: {
             type: Number,

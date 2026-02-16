@@ -14,12 +14,35 @@ const projectSchema = new mongoose.Schema(
         },
         projectType: {
             type: String,
-            enum: ['Personal Hse', 'Hostel', 'Hotel', 'Office Block', 'Residential Apartment', 'Industrial', 'FitOut', 'Renovation', 'School', 'Research'],
+            enum: [
+                'Personal Hse',
+                'Hostel', 
+                'Hotel', 
+                'Office Block', 
+                'Residential Apartment', 
+                'Industrial', 
+                'FitOut', 
+                'Renovation', 
+                'Education', 
+                'Hospital',
+                'Commercial',
+                'Research',
+                'Other'
+            ],
             default: ''
         },
         region: {
             type: String,
-            enum: ['Coast', 'Western', 'Eastern', 'North Eastern', 'Rift Valley', 'Central', 'Nyanza', 'Nairobi'],
+            enum: [
+                'Coast', 
+                'Western', 
+                'Eastern', 
+                'North Eastern', 
+                'Rift Valley', 
+                'Central', 
+                'Nyanza', 
+                'Nairobi'
+            ],
         },
         county: {
             type: String,
@@ -56,7 +79,7 @@ const projectSchema = new mongoose.Schema(
                 'Construction & Supervision',
                 'Snagging, Testing & Commissioning',
                 "Handover",
-                'Other(specify)'
+                'Other'
                 ]
         },
         status: {

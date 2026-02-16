@@ -30,6 +30,9 @@ const UpdateProject = () => {
         status: 'Active'
     });
 
+    const [customProjectType, setCustomProjectType] = useState('');
+    const [customStage, setCustomStage] = useState('');
+
     const PROJECT_TYPE_OPTIONS = [
         'Personal Hse',
         'Hostel',
@@ -39,8 +42,11 @@ const UpdateProject = () => {
         'Industrial',
         'FitOut',
         'Renovation',
-        'School',
-        'Research'
+        'Education',
+        'Hospital',
+        'Commercial',
+        'Research',
+        'Other'
     ];
 
     const REGION_OPTIONS = [
@@ -126,8 +132,16 @@ const UpdateProject = () => {
         setSaving(true);
         setError('');
 
+        // If projectType is 'Other', use customProjectType value
+        // If stage is 'Other(specify)', use customStage value
+        const projectData = {
+            ...formData,
+            projectType: formData.projectType === 'Other' ? customProjectType : formData.projectType,
+            stage: formData.stage === 'Other' ? customStage : formData.stage
+        };
+
         try {
-            await api.put(`/projects/${id}`, formData);
+            await api.put(`/projects/${id}`, projectData);
             alert("Project updated successfully!");
             navigate('/project-manager');
         } catch (err) {
@@ -203,6 +217,14 @@ const UpdateProject = () => {
                                     <option key={type} value={type}>{type}</option>
                                 ))}
                             </select>
+                            {formData.projectType === 'Other' && (
+                                <input 
+                                    name="customProjectType"
+                                    placeholder="Specify project type" 
+                                    value={customProjectType}
+                                    onChange={(e) => setCustomProjectType(e.target.value)}
+                                />
+                            )}
                         </div>
                     </div>
 
@@ -322,8 +344,15 @@ const UpdateProject = () => {
                                 <option value="Construction & Supervision">Construction & Supervision</option>
                                 <option value="Snagging, Testing & Commissioning">Snagging, Testing & Commissioning</option>
                                 <option value="Handover">Handover</option>
-                                <option value="Other(specify)">Other(specify)</option>
+                                <option value="Other">Other</option>
                             </select>
+                            {formData.stage === 'Other' && (
+                                <input 
+                                    placeholder="Specify stage" 
+                                    value={customStage}
+                                    onChange={(e) => setCustomStage(e.target.value)}
+                                />
+                            )}
                         </div>
                         
                         <div className="form-group">

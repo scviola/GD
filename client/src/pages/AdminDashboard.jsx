@@ -33,8 +33,7 @@ const AdminDashboard = () => {
     hoursByStage: [],
     hoursByProjectType: [],
     employeeTaskProgress: [],
-    employeeProjectProgress: [],
-    mileageByEmployee: []
+    employeeProjectProgress: []
   });
   const [projectStageData, setProjectStageData] = useState([]);
   const [projectTypeData, setProjectTypeData] = useState([]);
@@ -352,14 +351,12 @@ const AdminDashboard = () => {
             travelHours: 0,
             projectHours: 0,
             totalManHours: 0,
-            totalMileage: 0,
             engineers: new Set()
           };
         }
         acc[key].travelHours += item.travelHours || 0;
         acc[key].projectHours += item.projectHours || 0;
         acc[key].totalManHours += item.totalManHours || 0;
-        acc[key].totalMileage += item.totalMileage || 0;
         acc[key].engineers.add(item.engineer);
         return acc;
       }, {});
@@ -744,7 +741,6 @@ const AdminDashboard = () => {
                 <th>Project Hours</th>
                 <th>Total Man Hours</th>
                 <th>Remaining Time</th>
-                <th>Total Mileage (km)</th>
               </tr>
             </thead>
             <tbody>
@@ -762,12 +758,11 @@ const AdminDashboard = () => {
                     <td>{formatHours(item.projectHours)}</td>
                     <td>{formatHours(item.totalManHours)}</td>
                     <td>{item.allocatedTime ? formatHours(item.allocatedTime - (item.totalManHours || 0)) : '-'}</td>
-                    <td>{item.totalMileage ? `${Number(item.totalMileage).toFixed(1)} km` : '-'}</td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="12" className="no-results">No project progress data available</td>
+                  <td colSpan="11" className="no-results">No project progress data available</td>
                 </tr>
               )}
             </tbody>
