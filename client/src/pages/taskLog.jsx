@@ -7,6 +7,7 @@ const TaskLog = () => {
   const [myProjects, setMyProjects] = useState([]);
   const [projectSearch, setProjectSearch] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [customStage, setCustomStage] = useState('');
 
   const [formData, setFormData] = useState({
     projectName: '',
@@ -77,6 +78,10 @@ const TaskLog = () => {
   };
 
   const handleChange = (field, value) => {
+    // Clear custom stage when not 'Other'
+    if (field === 'stage' && value !== 'Other') {
+      setCustomStage('');
+    }
     if (field === 'leavesOffice' && value === false) {
       setFormData(prev => ({
         ...prev,
@@ -93,7 +98,13 @@ const TaskLog = () => {
     setSubmitting(true);
 
     try {
-      const res = await api.post('/tasks', formData);
+      // If stage is 'Other', use customStage value
+      const submissionData = {
+        ...formData,
+        stage: formData.stage === 'Other' && customStage ? customStage : formData.stage
+      };
+      
+      const res = await api.post('/tasks', submissionData);
       if (res.status === 200 || res.status === 201) {
         const message = res.status === 200 
           ? 'Task updated successfully'
@@ -181,8 +192,22 @@ const TaskLog = () => {
           <option value="Construction & Supervision">Construction & Supervision</option>
           <option value="Snagging, Testing & Commissioning">Snagging, Testing & Commissioning</option>
           <option value="Handover">Handover</option>
-          <option value="Other(specify)">Other(specify)</option>
+          <option value="Other">Other</option>
         </select>
+
+        {/* Custom Stage Input */}
+        {formData.stage === 'Other' && (
+          <>
+            <label>Specify Other Stage *</label>
+            <input
+              type="text"
+              required
+              value={customStage}
+              onChange={(e) => setCustomStage(e.target.value)}
+              placeholder="Enter stage"
+            />
+          </>
+        )}
 
         {/* Tasks */}
         <label>Task *</label>

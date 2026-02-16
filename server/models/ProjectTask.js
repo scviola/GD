@@ -25,7 +25,7 @@ const projectTaskSchema = new mongoose.Schema(
                 'Construction & Supervision',
                 'Snagging, Testing & Commissioning',
                 "Handover",
-                'Other(specify)'
+                'Other'
                 ],
                 required: true
         },
