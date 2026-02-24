@@ -172,13 +172,13 @@ const MyProjects = () => {
                                     <tr key={project._id}>
                                         <td><strong><Link to={`/project-details/${project._id}`} className="project-link">{project.projectNumber}</Link></strong></td>
                                         <td><Link to={`/project-details/${project._id}`} className="project-link">{project.projectName}</Link></td>
-                                        <td>{project.projectType || '-'}</td>
+                                        <td>{project.projectType === 'Other' ? project.customProjectType || '-' : project.projectType || '-'}</td>
                                         <td>{project.region || '-'}</td>
                                         <td>{project.architect || '-'}</td>
                                         <td>{getEngineerNames(project.electrical)}</td>
                                         <td>{getEngineerNames(project.mechanical)}</td>
                                         <td>{getProjectLeadName(project.projectLead)}</td>
-                                        <td>{project.stage || '-'}</td>
+                                        <td>{project.stage === 'Other' ? project.customStage || '-' : project.stage || '-'}</td>
                                         <td>
                                             <span className={`badge ${project.status?.toLowerCase().replace(/\s+/g, '-') || 'not-set'}`}>
                                                 {project.status || 'Not Set'}
@@ -245,7 +245,7 @@ const MyProjects = () => {
                                 >
                                     <option value="">Select Stage...</option>
                                     <option value="Tendering">Tendering</option>
-                                    <option value="Pre-Design">Pre-Design</option>
+                                    <option value="Pre-design">Pre-design</option>
                                     <option value="Design">Design</option>
                                     <option value="Construction & Supervision">Construction & Supervision</option>
                                     <option value="Snagging, Testing & Commissioning">Snagging, Testing & Commissioning</option>

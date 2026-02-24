@@ -27,8 +27,13 @@ const projectSchema = new mongoose.Schema(
                 'Hospital',
                 'Commercial',
                 'Research',
-                'Other'
+                'Other',
+                'N/A'
             ],
+            default: ''
+        },
+        customProjectType: {
+            type: String,
             default: ''
         },
         region: {
@@ -41,7 +46,8 @@ const projectSchema = new mongoose.Schema(
                 'Rift Valley', 
                 'Central', 
                 'Nyanza', 
-                'Nairobi'
+                'Nairobi',
+                'N/A'
             ],
         },
         county: {
@@ -81,6 +87,10 @@ const projectSchema = new mongoose.Schema(
                 "Handover",
                 'Other'
                 ]
+        },
+        customStage: {
+            type: String,
+            default: ''
         },
         status: {
             type: String,

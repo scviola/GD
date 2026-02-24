@@ -42,7 +42,8 @@ const ProjectManager = () => {
         'Hospital',
         'Commercial',
         'Research',
-        'Other'
+        'Other',
+        'N/A'
     ];
 
     const REGION_OPTIONS = [
@@ -53,7 +54,8 @@ const ProjectManager = () => {
         'Rift Valley',
         'Central',
         'Nyanza',
-        'Nairobi'
+        'Nairobi',
+        'N/A'
     ];
 
     const COUNTIES_BY_REGION = {
@@ -100,12 +102,14 @@ const ProjectManager = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // If projectType is 'Other', use customProjectType value
-        // If stage is 'Other(specify)', use customStage value
+        // If projectType is 'Other', keep 'Other' as value and use customProjectType for the custom input
+        // If stage is 'Other', keep 'Other' as value and use customStage for the custom input
         const projectData = {
             ...formData,
-            projectType: formData.projectType === 'Other' ? customProjectType : formData.projectType,
-            stage: formData.stage === 'Other' ? customStage : formData.stage
+            projectType: formData.projectType === 'Other' ? 'Other' : formData.projectType,
+            customProjectType: formData.projectType === 'Other' ? customProjectType : '',
+            stage: formData.stage === 'Other' ? 'Other' : formData.stage,
+            customStage: formData.stage === 'Other' ? customStage : ''
         };
         try {
             await api.post('/projects', projectData);
@@ -266,6 +270,7 @@ const ProjectManager = () => {
                         {users.filter(user => user.engineerType === 'Electrical').map(user => (
                             <option key={user._id} value={user._id}>{user.name}</option>
                         ))}
+                        <option value="N/A">N/A</option>
                     </select>
                     <select 
                         value={formData.mechanical}
@@ -275,6 +280,7 @@ const ProjectManager = () => {
                         {users.filter(user => user.engineerType === 'Mechanical').map(user => (
                             <option key={user._id} value={user._id}>{user.name}</option>
                         ))}
+                        <option value="N/A">N/A</option>
                     </select>
                     <select 
                         value={formData.projectLead}
@@ -284,6 +290,7 @@ const ProjectManager = () => {
                         {users.map(user => (
                             <option key={user._id} value={user._id}>{user.name}</option>
                         ))}
+                        <option value="N/A">N/A</option>
                     </select>
 
                     <select 
@@ -291,7 +298,7 @@ const ProjectManager = () => {
                         onChange={(e) => setFormData({...formData, stage: e.target.value})}
                     >
                         <option value="">Select Stage</option>
-                        <option value="Pre-Design">Pre-Design</option>
+                        <option value="Pre-design">Pre-design</option>
                         <option value="Design">Design</option>
                         <option value="Tendering">Tendering</option>
                         <option value="Construction & Supervision">Construction & Supervision</option>
@@ -354,7 +361,7 @@ const ProjectManager = () => {
                                     <tr key={project._id}>
                                         <td><strong>{project.projectNumber}</strong></td>
                                         <td>{project.projectName}</td>
-                                        <td>{project.projectType || '-'}</td>
+                                        <td>{project.projectType === 'Other' ? project.customProjectType || '-' : project.projectType || '-'}</td>
                                         <td>{project.region || '-'}</td>
                                         <td>{project.county || '-'}</td>
                                         <td>{project.architect || '-'}</td>
@@ -362,7 +369,7 @@ const ProjectManager = () => {
                                         <td>{project.electrical?.name || '-'}</td>
                                         <td>{project.mechanical?.name || '-'}</td>
                                         <td>{project.projectLead?.name || '-'}</td>
-                                        <td>{project.stage || '-'}</td>
+                                        <td>{project.stage === 'Other' ? project.customStage || '-' : project.stage || '-'}</td>
                                         <td>
                                             <select 
                                                 className="status-select"

@@ -14,11 +14,15 @@ const createProjectValidation = [
         .optional()
         .isIn([
             'Personal Hse', 'Hostel', 'Hotel', 'Office Block', 'Residential Apartment',
-            'Industrial', 'FitOut', 'Renovation', 'Education', 'Hospital', 'Commercial', 'Research', 'Other'
+            'Industrial', 'FitOut', 'Renovation', 'Education', 'Hospital', 'Commercial', 'Research', 'Other', 'N/A'
         ]).withMessage('Invalid project type'),
+    body('customProjectType')
+        .optional()
+        .trim()
+        .isLength({ max: 100 }).withMessage('Custom project type must be less than 100 characters'),
     body('region')
         .optional()
-        .isIn(['Coast', 'Western', 'Eastern', 'North Eastern', 'Rift Valley', 'Central', 'Nyanza', 'Nairobi'])
+        .isIn(['Coast', 'Western', 'Eastern', 'North Eastern', 'Rift Valley', 'Central', 'Nyanza', 'Nairobi', 'N/A'])
         .withMessage('Invalid region'),
     body('county')
         .trim()
@@ -37,21 +41,21 @@ const createProjectValidation = [
     body('electrical')
         .optional({ nullable: true, checkFalsy: true })
         .custom((value) => {
-            if (value === '' || value === null || value === undefined) return true;
+            if (value === '' || value === null || value === undefined || value === 'N/A') return true;
             const mongoose = require('mongoose');
             return mongoose.Types.ObjectId.isValid(value);
         }).withMessage('Invalid electrical engineer ID'),
     body('mechanical')
         .optional({ nullable: true, checkFalsy: true })
         .custom((value) => {
-            if (value === '' || value === null || value === undefined) return true;
+            if (value === '' || value === null || value === undefined || value === 'N/A') return true;
             const mongoose = require('mongoose');
             return mongoose.Types.ObjectId.isValid(value);
         }).withMessage('Invalid mechanical engineer ID'),
     body('projectLead')
         .optional({ nullable: true, checkFalsy: true })
         .custom((value) => {
-            if (value === '' || value === null || value === undefined) return true;
+            if (value === '' || value === null || value === undefined || value === 'N/A') return true;
             const mongoose = require('mongoose');
             return mongoose.Types.ObjectId.isValid(value);
         }).withMessage('Invalid project lead ID'),
@@ -66,6 +70,10 @@ const createProjectValidation = [
             'Handover',
             'Other'
         ]).withMessage('Invalid stage'),
+    body('customStage')
+        .optional()
+        .trim()
+        .isLength({ max: 100 }).withMessage('Custom stage must be less than 100 characters'),
     body('status')
         .optional()
         .isIn(['Active', 'Completed', 'Stalled']).withMessage('Invalid status'),
@@ -93,11 +101,15 @@ const updateProjectValidation = [
         .optional()
         .isIn([
             'Personal Hse', 'Hostel', 'Hotel', 'Office Block', 'Residential Apartment',
-            'Industrial', 'FitOut', 'Renovation', 'Education', 'Hospital', 'Commercial', 'Research', 'Other'
+            'Industrial', 'FitOut', 'Renovation', 'Education', 'Hospital', 'Commercial', 'Research', 'Other', 'N/A'
         ]).withMessage('Invalid project type'),
+    body('customProjectType')
+        .optional()
+        .trim()
+        .isLength({ max: 100 }).withMessage('Custom project type must be less than 100 characters'),
     body('region')
         .optional()
-        .isIn(['Coast', 'Western', 'Eastern', 'North Eastern', 'Rift Valley', 'Central', 'Nyanza', 'Nairobi'])
+        .isIn(['Coast', 'Western', 'Eastern', 'North Eastern', 'Rift Valley', 'Central', 'Nyanza', 'Nairobi', 'N/A'])
         .withMessage('Invalid region'),
     body('county')
         .optional()
@@ -116,21 +128,21 @@ const updateProjectValidation = [
     body('electrical')
         .optional({ nullable: true, checkFalsy: true })
         .custom((value) => {
-            if (value === '' || value === null || value === undefined) return true;
+            if (value === '' || value === null || value === undefined || value === 'N/A') return true;
             const mongoose = require('mongoose');
             return mongoose.Types.ObjectId.isValid(value);
         }).withMessage('Invalid electrical engineer ID'),
     body('mechanical')
         .optional({ nullable: true, checkFalsy: true })
         .custom((value) => {
-            if (value === '' || value === null || value === undefined) return true;
+            if (value === '' || value === null || value === undefined || value === 'N/A') return true;
             const mongoose = require('mongoose');
             return mongoose.Types.ObjectId.isValid(value);
         }).withMessage('Invalid mechanical engineer ID'),
     body('projectLead')
         .optional({ nullable: true, checkFalsy: true })
         .custom((value) => {
-            if (value === '' || value === null || value === undefined) return true;
+            if (value === '' || value === null || value === undefined || value === 'N/A') return true;
             const mongoose = require('mongoose');
             return mongoose.Types.ObjectId.isValid(value);
         }).withMessage('Invalid project lead ID'),
@@ -145,6 +157,10 @@ const updateProjectValidation = [
             'Handover',
             'Other'
         ]).withMessage('Invalid stage'),
+    body('customStage')
+        .optional()
+        .trim()
+        .isLength({ max: 100 }).withMessage('Custom stage must be less than 100 characters'),
     body('status')
         .optional()
         .isIn(['Active', 'Completed', 'Stalled']).withMessage('Invalid status'),

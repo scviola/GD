@@ -46,7 +46,8 @@ const UpdateProject = () => {
         'Hospital',
         'Commercial',
         'Research',
-        'Other'
+        'Other',
+        'N/A'
     ];
 
     const REGION_OPTIONS = [
@@ -57,7 +58,8 @@ const UpdateProject = () => {
         'Rift Valley',
         'Central',
         'Nyanza',
-        'Nairobi'
+        'Nairobi',
+        'N/A'
     ];
 
     const COUNTIES_BY_REGION = {
@@ -99,6 +101,9 @@ const UpdateProject = () => {
                     stage: projectData.stage || '',
                     status: projectData.status || 'Active'
                 });
+                // Set custom project type and stage if they exist
+                setCustomProjectType(projectData.customProjectType || '');
+                setCustomStage(projectData.customStage || '');
             } catch (err) {
                 console.error("Error fetching data", err);
                 setError(err.response?.data?.message || "Failed to load project");
@@ -132,12 +137,14 @@ const UpdateProject = () => {
         setSaving(true);
         setError('');
 
-        // If projectType is 'Other', use customProjectType value
-        // If stage is 'Other(specify)', use customStage value
+        // If projectType is 'Other', keep 'Other' as value and use customProjectType for the custom input
+        // If stage is 'Other', keep 'Other' as value and use customStage for the custom input
         const projectData = {
             ...formData,
-            projectType: formData.projectType === 'Other' ? customProjectType : formData.projectType,
-            stage: formData.stage === 'Other' ? customStage : formData.stage
+            projectType: formData.projectType === 'Other' ? 'Other' : formData.projectType,
+            customProjectType: formData.projectType === 'Other' ? customProjectType : '',
+            stage: formData.stage === 'Other' ? 'Other' : formData.stage,
+            customStage: formData.stage === 'Other' ? customStage : ''
         };
 
         try {
@@ -297,6 +304,7 @@ const UpdateProject = () => {
                                 {users.filter(user => user.engineerType === 'Electrical').map(user => (
                                     <option key={user._id} value={user._id}>{user.name}</option>
                                 ))}
+                                <option value="N/A">N/A</option>
                             </select>
                         </div>
                         
@@ -311,6 +319,7 @@ const UpdateProject = () => {
                                 {users.filter(user => user.engineerType === 'Mechanical').map(user => (
                                     <option key={user._id} value={user._id}>{user.name}</option>
                                 ))}
+                                <option value="N/A">N/A</option>
                             </select>
                         </div>
                         
@@ -325,6 +334,7 @@ const UpdateProject = () => {
                                 {users.map(user => (
                                     <option key={user._id} value={user._id}>{user.name}</option>
                                 ))}
+                                <option value="N/A">N/A</option>
                             </select>
                         </div>
                     </div>
@@ -338,7 +348,7 @@ const UpdateProject = () => {
                                 onChange={handleChange}
                             >
                                 <option value="">Select Stage</option>
-                                <option value="Pre-Design">Pre-Design</option>
+                                <option value="Pre-design">Pre-design</option>
                                 <option value="Design">Design</option>
                                 <option value="Tendering">Tendering</option>
                                 <option value="Construction & Supervision">Construction & Supervision</option>

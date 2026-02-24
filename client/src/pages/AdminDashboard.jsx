@@ -131,7 +131,7 @@ const AdminDashboard = () => {
         
         // Group by projectType
         const typeCounts = projects.reduce((acc, project) => {
-          const type = project.projectType || 'Not Set';
+          const type = project.projectType === 'Other' ? (project.customProjectType || 'Other') : (project.projectType || 'Not Set');
           acc[type] = (acc[type] || 0) + 1;
           return acc;
         }, {});
@@ -302,7 +302,11 @@ const AdminDashboard = () => {
   const getUniqueProjectTypes = () => {
     const types = new Set();
     analytics.employeeProjectProgress?.forEach(item => {
-      if (item.projectType) types.add(item.projectType);
+      if (item.projectType) {
+        // If projectType is 'Other', use customProjectType
+        const type = item.projectType === 'Other' ? (item.customProjectType || 'Other') : item.projectType;
+        types.add(type);
+      }
     });
     return Array.from(types).sort();
   };
@@ -327,10 +331,20 @@ const AdminDashboard = () => {
       data = data.filter(item => item.projectName === projectTableFilters.projectName);
     }
     if (projectTableFilters.projectType) {
-      data = data.filter(item => item.projectType === projectTableFilters.projectType);
+      data = data.filter(item => {
+        if (projectTableFilters.projectType === 'Other') {
+          return item.projectType === 'Other';
+        }
+        return item.projectType === projectTableFilters.projectType;
+      });
     }
     if (projectTableFilters.stage) {
-      data = data.filter(item => item.stage === projectTableFilters.stage);
+      data = data.filter(item => {
+        if (projectTableFilters.stage === 'Other') {
+          return item.stage === 'Other';
+        }
+        return item.stage === projectTableFilters.stage;
+      });
     }
     if (projectTableFilters.status) {
       data = data.filter(item => item.status === projectTableFilters.status);
@@ -344,8 +358,8 @@ const AdminDashboard = () => {
           acc[key] = {
             projectName: item.projectName,
             projectNumber: item.projectNumber,
-            projectType: item.projectType,
-            stage: item.stage,
+            projectType: item.projectType === 'Other' ? (item.customProjectType || 'Other') : item.projectType,
+            stage: item.stage === 'Other' ? (item.customStage || 'Other') : item.stage,
             status: item.status,
             allocatedTime: item.allocatedTime,
             travelHours: 0,
@@ -750,8 +764,8 @@ const AdminDashboard = () => {
                     <td>{item.engineer}</td>
                     <td>{item.projectNumber}</td>
                     <td>{item.projectName}</td>
-                    <td>{item.projectType}</td>
-                    <td>{item.stage}</td>
+                    <td>{item.projectType === 'Other' ? item.customProjectType || '-' : item.projectType}</td>
+                    <td>{item.stage === 'Other' ? item.customStage || '-' : item.stage}</td>
                     <td>{item.status}</td>
                     <td>{item.allocatedTime ? `${item.allocatedTime} hrs` : '-'}</td>
                     <td>{formatHours(item.travelHours)}</td>
