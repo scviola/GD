@@ -30,6 +30,11 @@ const createProject = async (req, res) => {
             // Type conversion for numeric fields
             const allocatedTimeNum = allocatedTime ? Number(allocatedTime) : 0;
             
+            // Convert 'N/A' strings to null for ObjectId fields
+            const electricalRef = (electrical && electrical !== 'N/A') ? electrical : null;
+            const mechanicalRef = (mechanical && mechanical !== 'N/A') ? mechanical : null;
+            const projectLeadRef = (projectLead && projectLead !== 'N/A') ? projectLead : null;
+
             const newProject = await Project.create({ 
                 projectNumber, 
                 projectName, 
@@ -38,9 +43,9 @@ const createProject = async (req, res) => {
                 county: county || '',
                 architect, 
                 allocatedTime: allocatedTimeNum,
-                electrical: electrical || null,
-                mechanical: mechanical || null,
-                projectLead: projectLead || null,
+                electrical: electricalRef,
+                mechanical: mechanicalRef,
+                projectLead: projectLeadRef,
                 stage: stage || '',
                 status: status || 'Active'
             });
