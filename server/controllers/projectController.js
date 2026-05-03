@@ -136,7 +136,13 @@ const updateProject = async (req, res) => {
         
         allowedFields.forEach(field => {
             if (req.body[field] !== undefined) {
-                project[field] = req.body[field];
+                let value = req.body[field];
+                // Convert 'N/A' or empty to null for ObjectId fields
+                if ((field === 'electrical' || field === 'mechanical' || field === 'projectLead') &&
+                    (!value || value === 'N/A')) {
+                    value = null;
+                }
+                project[field] = value;
             }
         });
         
