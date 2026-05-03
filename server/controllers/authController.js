@@ -168,27 +168,27 @@ const register = async (req, res, next) => {
     }
 };
 
-// PUT /auth/reset-password - Reset user's chosen password
+// PUT /auth/reset-password - Reset user's password
 const resetPassword = async (req, res, next) => {
     try {
-        const { email, currentPassword, newPassword } = req.body;
-        if (!email || !currentPassword || !newPassword)
-            return res.status(400).json({message: "Email, current password, and new password required"});
+        const { email, newPassword } = req.body;
+        if (!email || !newPassword)
+            return res.status(400).json({message: "Email and new password required"});
 
         const user = await User.findOne({email: email.toLowerCase()}).select("+password +userPassword");
         if (!user)
             return res.status(404).json({message: "User not found"});
 
-        // Verify current password
-        let isCurrentValid = false;
-        if (user.userPassword) {
-            isCurrentValid = await bcrypt.compare(currentPassword, user.userPassword);
-        } else {
-            isCurrentValid = await bcrypt.compare(currentPassword, user.password);
-        }
+        // // Verify current password
+        // let isCurrentValid = false;
+        // if (user.userPassword) {
+        //     isCurrentValid = await bcrypt.compare(currentPassword, user.userPassword);
+        // } else {
+        //     isCurrentValid = await bcrypt.compare(currentPassword, user.password);
+        // }
 
-        if (!isCurrentValid)
-            return res.status(401).json({message: "Current password is incorrect"});
+        // if (!isCurrentValid)
+        //     return res.status(401).json({message: "Current password is incorrect"});
 
         // Hash and set new password
         const hashedNewPassword = await bcrypt.hash(newPassword, 10);
